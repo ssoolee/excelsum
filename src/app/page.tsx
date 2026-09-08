@@ -15,6 +15,7 @@ import {
   mergeParsedFiles,
   parseExcelFile,
   previewRows,
+  renumberFirstColumn,
   type ParsedFile,
 } from "@/lib/excel";
 import type { FileEntry } from "@/lib/types";
@@ -29,6 +30,7 @@ export default function Home() {
   const [items, setItems] = useState<Item[]>([]);
   const [warning, setWarning] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [renumbered, setRenumbered] = useState(false);
   const referenceHeadersRef = useRef<string[] | null>(null);
 
   const updateEntry = useCallback((id: string, next: Item) => {
@@ -153,13 +155,21 @@ export default function Home() {
     return mergeParsedFiles(okParsed);
   }, [items]);
 
-  const preview = useMemo(() => (merged ? previewRows(merged) : null), [merged]);
+  const displayedMerged = useMemo(() => {
+    if (!merged) return null;
+    return renumbered ? renumberFirstColumn(merged) : merged;
+  }, [merged, renumbered]);
+
+  const preview = useMemo(
+    () => (displayedMerged ? previewRows(displayedMerged) : null),
+    [displayedMerged]
+  );
 
   const handleDownload = useCallback(async () => {
-    if (!merged) return;
+    if (!displayedMerged) return;
     setIsDownloading(true);
     try {
-      const blob = await buildWorkbookBlob(merged);
+      const blob = await buildWorkbookBlob(displayedMerged);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -169,11 +179,12 @@ export default function Home() {
     } finally {
       setIsDownloading(false);
     }
-  }, [merged]);
+  }, [displayedMerged]);
 
   const handleReset = useCallback(() => {
     setItems([]);
     setWarning(null);
+    setRenumbered(false);
     referenceHeadersRef.current = null;
   }, []);
 
@@ -221,23 +232,32 @@ export default function Home() {
         </section>
 
         <section className={styles.rightColumn}>
-          {merged && preview ? (
+          {displayedMerged && preview ? (
             <>
               <div className={styles.resultHeader}>
                 <h2 className={styles.resultTitle}>통합 결과 미리보기</h2>
-                <button
-                  type="button"
-                  className={styles.downloadButton}
-                  onClick={handleDownload}
-                  disabled={isDownloading}
-                >
-                  {isDownloading ? "생성 중..." : "엑셀 다운로드"}
-                </button>
+                <div className={styles.resultActions}>
+                  <button
+                    type="button"
+                    className={styles.renumberButton}
+                    onClick={() => setRenumbered((r) => !r)}
+                  >
+                    {renumbered ? "원래 연번으로 되돌리기" : "연번 다시 매기기"}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.downloadButton}
+                    onClick={handleDownload}
+                    disabled={isDownloading}
+                  >
+                    {isDownloading ? "생성 중..." : "엑셀 다운로드"}
+                  </button>
+                </div>
               </div>
               <PreviewTable
-                headers={merged.headers}
+                headers={displayedMerged.headers}
                 rows={preview.rows}
-                totalRowCount={merged.rows.length}
+                totalRowCount={displayedMerged.rows.length}
                 truncated={preview.truncated}
               />
             </>

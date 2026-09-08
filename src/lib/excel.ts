@@ -209,6 +209,17 @@ export function mergeParsedFiles(files: ParsedFile[]): MergedResult {
   };
 }
 
+export function renumberFirstColumn(merged: MergedResult): MergedResult {
+  return {
+    ...merged,
+    rows: merged.rows.map((row, i) => {
+      const next = [...row];
+      next[0] = i + 1;
+      return next;
+    }),
+  };
+}
+
 export function previewRows(merged: MergedResult): {
   rows: unknown[][];
   truncated: boolean;

@@ -93,6 +93,27 @@
   color: var(--text);
 }
 
+.resultActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.renumberButton {
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.renumberButton:hover {
+  background: var(--surface);
+}
+
 .downloadButton {
   padding: 0.6rem 1.3rem;
   border: none;
