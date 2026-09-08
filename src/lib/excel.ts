@@ -1,9 +1,14 @@
 import ExcelJS from "exceljs";
 
+type CellStyle = Partial<ExcelJS.Style>;
+
 export interface ParsedFile {
   fileName: string;
   headers: string[];
   rows: unknown[][];
+  headerCellStyles: (CellStyle | undefined)[];
+  columnWidths: (number | undefined)[];
+  dataNumberFormats: (string | undefined)[];
 }
 
 export interface HeaderDiff {
@@ -15,6 +20,9 @@ export interface HeaderDiff {
 export interface MergedResult {
   headers: string[];
   rows: unknown[][];
+  headerCellStyles: (CellStyle | undefined)[];
+  columnWidths: (number | undefined)[];
+  dataNumberFormats: (string | undefined)[];
 }
 
 export const MAX_FILES = 50;
@@ -97,7 +105,16 @@ export async function parseExcelFile(file: File): Promise<ParsedFile> {
   }
   const { rowNumber: headerRowNumber, headers } = found;
 
+  const headerRowRef = sheet.getRow(headerRowNumber);
+  const headerCellStyles: (CellStyle | undefined)[] = [];
+  const columnWidths: (number | undefined)[] = [];
+  for (let c = 1; c <= headers.length; c++) {
+    headerCellStyles[c - 1] = { ...headerRowRef.getCell(c).style };
+    columnWidths[c - 1] = sheet.getColumn(c).width;
+  }
+
   const rows: unknown[][] = [];
+  const dataNumberFormats: (string | undefined)[] = [];
   for (let r = headerRowNumber + 1; r <= sheet.rowCount; r++) {
     const row = sheet.getRow(r);
     const values: unknown[] = [];
@@ -105,11 +122,16 @@ export async function parseExcelFile(file: File): Promise<ParsedFile> {
       values[c - 1] = normalizeCellValue(row.getCell(c).value);
     }
     if (!isRowEmpty(values)) {
+      if (rows.length === 0) {
+        for (let c = 1; c <= headers.length; c++) {
+          dataNumberFormats[c - 1] = row.getCell(c).numFmt;
+        }
+      }
       rows.push(values);
     }
   }
 
-  return { fileName: file.name, headers, rows };
+  return { fileName: file.name, headers, rows, headerCellStyles, columnWidths, dataNumberFormats };
 }
 
 function normalizeCellValue(value: unknown): unknown {
@@ -144,14 +166,21 @@ export function describeHeaderDiff(diff: HeaderDiff): string {
 }
 
 export function mergeParsedFiles(files: ParsedFile[]): MergedResult {
-  const headers = [...files[0].headers, SOURCE_COLUMN];
+  const template = files[0];
+  const headers = [...template.headers, SOURCE_COLUMN];
   const rows: unknown[][] = [];
   for (const f of files) {
     for (const row of f.rows) {
       rows.push([...row, f.fileName]);
     }
   }
-  return { headers, rows };
+  return {
+    headers,
+    rows,
+    headerCellStyles: [...template.headerCellStyles, undefined],
+    columnWidths: [...template.columnWidths, undefined],
+    dataNumberFormats: [...template.dataNumberFormats, undefined],
+  };
 }
 
 export function previewRows(merged: MergedResult): {
@@ -164,6 +193,8 @@ export function previewRows(merged: MergedResult): {
   };
 }
 
+const DEFAULT_COLUMN_WIDTH = 16;
+
 export async function buildWorkbookBlob(merged: MergedResult): Promise<Blob> {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("통합결과");
@@ -171,10 +202,31 @@ export async function buildWorkbookBlob(merged: MergedResult): Promise<Blob> {
   for (const row of merged.rows) {
     sheet.addRow(row);
   }
-  sheet.getRow(1).font = { bold: true };
-  sheet.columns.forEach((col) => {
-    col.width = 16;
+
+  const headerRow = sheet.getRow(1);
+  merged.headers.forEach((_, i) => {
+    const column = sheet.getColumn(i + 1);
+    column.width = merged.columnWidths[i] ?? DEFAULT_COLUMN_WIDTH;
+
+    const capturedStyle = merged.headerCellStyles[i];
+    const headerCell = headerRow.getCell(i + 1);
+    if (capturedStyle) {
+      headerCell.style = capturedStyle;
+    } else {
+      headerCell.font = { bold: true };
+    }
   });
+
+  for (let r = 2; r <= sheet.rowCount; r++) {
+    const row = sheet.getRow(r);
+    merged.headers.forEach((_, i) => {
+      const numFmt = merged.dataNumberFormats[i];
+      if (numFmt) {
+        row.getCell(i + 1).numFmt = numFmt;
+      }
+    });
+  }
+
   const buffer = await workbook.xlsx.writeBuffer();
   return new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

@@ -170,6 +170,17 @@ export default function Home() {
     referenceHeadersRef.current = null;
   }, []);
 
+  const handleRemove = useCallback((id: string) => {
+    setItems((prev) => {
+      const next = prev.filter((it) => it.entry.id !== id);
+      const stillHasOk = next.some((it) => it.entry.status === "ok");
+      if (!stillHasOk) {
+        referenceHeadersRef.current = null;
+      }
+      return next;
+    });
+  }, []);
+
   const okCount = items.filter((it) => it.entry.status === "ok").length;
   const problemCount = items.length - okCount;
 
@@ -199,7 +210,7 @@ export default function Home() {
             </div>
           )}
 
-          <FileStatusList entries={items.map((it) => it.entry)} />
+          <FileStatusList entries={items.map((it) => it.entry)} onRemove={handleRemove} />
         </section>
 
         <section className={styles.rightColumn}>

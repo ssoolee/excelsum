@@ -9,7 +9,12 @@ const STATUS_LABEL: Record<FileEntry["status"], string> = {
   error: "오류",
 };
 
-export function FileStatusList({ entries }: { entries: FileEntry[] }) {
+interface FileStatusListProps {
+  entries: FileEntry[];
+  onRemove: (id: string) => void;
+}
+
+export function FileStatusList({ entries, onRemove }: FileStatusListProps) {
   if (entries.length === 0) return null;
 
   return (
@@ -18,9 +23,19 @@ export function FileStatusList({ entries }: { entries: FileEntry[] }) {
         <li key={entry.id} className={styles.item}>
           <div className={styles.itemHeader}>
             <span className={styles.fileName}>{entry.fileName}</span>
-            <span className={`${styles.badge} ${styles[entry.status]}`}>
-              {STATUS_LABEL[entry.status]}
-            </span>
+            <div className={styles.itemActions}>
+              <span className={`${styles.badge} ${styles[entry.status]}`}>
+                {STATUS_LABEL[entry.status]}
+              </span>
+              <button
+                type="button"
+                className={styles.removeButton}
+                onClick={() => onRemove(entry.id)}
+                aria-label={`${entry.fileName} 제거`}
+              >
+                ✕
+              </button>
+            </div>
           </div>
           {entry.message && <p className={styles.message}>{entry.message}</p>}
           {entry.status === "ok" && entry.rowCount !== undefined && (
