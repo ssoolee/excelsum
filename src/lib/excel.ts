@@ -209,6 +209,30 @@ export function mergeParsedFiles(files: ParsedFile[]): MergedResult {
   };
 }
 
+const isBlankValue = (value: unknown): boolean => String(value ?? "").trim() === "";
+
+/**
+ * 첫 번째 칸(주로 연번)만 채워져 있고 나머지 원본 컬럼(마지막의 "출처 파일"
+ * 컬럼은 제외)이 모두 비어 있는 행을 제거한다. 완전히 빈 행은 파싱 단계에서
+ * 이미 걸러지므로, 이 함수는 "연번만 앞서 매겨두고 실제 내용은 채우지 않은" 행을
+ * 대상으로 한다.
+ */
+export function removeFirstColumnOnlyRows(merged: MergedResult): MergedResult {
+  const originalColumnCount = merged.headers.length - 1; // 마지막 컬럼(출처 파일) 제외
+  if (originalColumnCount <= 1) return merged; // 비교할 "나머지" 컬럼이 없음
+  return {
+    ...merged,
+    rows: merged.rows.filter((row) => {
+      const hasFirstValue = !isBlankValue(row[0]);
+      if (!hasFirstValue) return true;
+      const restIsBlank = row
+        .slice(1, originalColumnCount)
+        .every((cell) => isBlankValue(cell));
+      return !restIsBlank;
+    }),
+  };
+}
+
 export function renumberFirstColumn(merged: MergedResult): MergedResult {
   return {
     ...merged,

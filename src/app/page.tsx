@@ -16,6 +16,7 @@ import {
   mergeParsedFiles,
   parseExcelFile,
   previewRows,
+  removeFirstColumnOnlyRows,
   renumberFirstColumn,
   type ParsedFile,
 } from "@/lib/excel";
@@ -32,6 +33,7 @@ export default function Home() {
   const [warning, setWarning] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [renumbered, setRenumbered] = useState(false);
+  const [sparseRemoved, setSparseRemoved] = useState(false);
   const referenceHeadersRef = useRef<string[] | null>(null);
 
   const updateEntry = useCallback((id: string, next: Item) => {
@@ -156,10 +158,18 @@ export default function Home() {
     return mergeParsedFiles(okParsed);
   }, [items]);
 
+  const sparseRowCount = useMemo(() => {
+    if (!merged) return 0;
+    return merged.rows.length - removeFirstColumnOnlyRows(merged).rows.length;
+  }, [merged]);
+
   const displayedMerged = useMemo(() => {
     if (!merged) return null;
-    return renumbered ? renumberFirstColumn(merged) : merged;
-  }, [merged, renumbered]);
+    let result = merged;
+    if (sparseRemoved) result = removeFirstColumnOnlyRows(result);
+    if (renumbered) result = renumberFirstColumn(result);
+    return result;
+  }, [merged, sparseRemoved, renumbered]);
 
   const preview = useMemo(
     () => (displayedMerged ? previewRows(displayedMerged) : null),
@@ -186,6 +196,7 @@ export default function Home() {
     setItems([]);
     setWarning(null);
     setRenumbered(false);
+    setSparseRemoved(false);
     referenceHeadersRef.current = null;
   }, []);
 
@@ -242,6 +253,17 @@ export default function Home() {
                 <div className={styles.resultHeader}>
                   <h2 className={styles.resultTitle}>통합 결과 미리보기</h2>
                   <div className={styles.resultActions}>
+                    {sparseRowCount > 0 && (
+                      <button
+                        type="button"
+                        className={styles.renumberButton}
+                        onClick={() => setSparseRemoved((r) => !r)}
+                      >
+                        {sparseRemoved
+                          ? `삭제한 행 복원 (${sparseRowCount}개)`
+                          : `첫 칸만 있는 행 삭제 (${sparseRowCount}개)`}
+                      </button>
+                    )}
                     <button
                       type="button"
                       className={styles.renumberButton}
