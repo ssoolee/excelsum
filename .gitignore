@@ -37,6 +37,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# firebase
+.firebase/
+.claude/scheduled_tasks.lock
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
