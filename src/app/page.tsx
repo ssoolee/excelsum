@@ -17,7 +17,6 @@ import {
   parseExcelFile,
   previewRows,
   removeFirstColumnOnlyRows,
-  renumberFirstColumn,
   type ParsedFile,
 } from "@/lib/excel";
 import type { FileEntry } from "@/lib/types";
@@ -32,7 +31,6 @@ export default function Home() {
   const [items, setItems] = useState<Item[]>([]);
   const [warning, setWarning] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [renumbered, setRenumbered] = useState(false);
   const [sparseRemoved, setSparseRemoved] = useState(false);
   const referenceHeadersRef = useRef<string[] | null>(null);
 
@@ -165,11 +163,8 @@ export default function Home() {
 
   const displayedMerged = useMemo(() => {
     if (!merged) return null;
-    let result = merged;
-    if (sparseRemoved) result = removeFirstColumnOnlyRows(result);
-    if (renumbered) result = renumberFirstColumn(result);
-    return result;
-  }, [merged, sparseRemoved, renumbered]);
+    return sparseRemoved ? removeFirstColumnOnlyRows(merged) : merged;
+  }, [merged, sparseRemoved]);
 
   const preview = useMemo(
     () => (displayedMerged ? previewRows(displayedMerged) : null),
@@ -195,7 +190,6 @@ export default function Home() {
   const handleReset = useCallback(() => {
     setItems([]);
     setWarning(null);
-    setRenumbered(false);
     setSparseRemoved(false);
     referenceHeadersRef.current = null;
   }, []);
@@ -264,13 +258,6 @@ export default function Home() {
                           : `첫 칸만 있는 행 삭제 (${sparseRowCount}개)`}
                       </button>
                     )}
-                    <button
-                      type="button"
-                      className={styles.renumberButton}
-                      onClick={() => setRenumbered((r) => !r)}
-                    >
-                      {renumbered ? "원래 연번으로 되돌리기" : "연번 다시 매기기"}
-                    </button>
                     <button
                       type="button"
                       className={styles.downloadButton}
