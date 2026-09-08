@@ -1,0 +1,79 @@
+.list {
+  container-type: inline-size;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 0.6rem;
+}
+
+.item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  background: var(--surface);
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+@container (max-width: 260px) {
+  .itemHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.fileName {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badge.ok {
+  background: var(--ok-surface);
+  color: var(--ok-text);
+}
+
+.badge.processing {
+  background: var(--muted-surface);
+  color: var(--text-muted);
+}
+
+.badge.mismatch,
+.badge.empty {
+  background: var(--warn-surface);
+  color: var(--warn-text);
+}
+
+.badge.error {
+  background: var(--error-surface);
+  color: var(--error-text);
+}
+
+.message {
+  margin: 0.4rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.rowCount {
+  margin: 0.3rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
