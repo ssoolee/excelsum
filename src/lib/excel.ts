@@ -9,6 +9,7 @@ export interface ParsedFile {
   headerCellStyles: (CellStyle | undefined)[];
   columnWidths: (number | undefined)[];
   dataNumberFormats: (string | undefined)[];
+  skippedSheets: string[];
 }
 
 export interface HeaderDiff {
@@ -92,46 +93,71 @@ export async function parseExcelFile(file: File): Promise<ParsedFile> {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
 
-  const sheet = workbook.worksheets[0];
-  if (!sheet) {
+  if (workbook.worksheets.length === 0) {
     throw new Error("시트를 찾을 수 없습니다.");
   }
 
-  const found = findHeaderRow(sheet);
-  if (!found) {
-    throw new Error(
-      `헤더 행을 찾을 수 없습니다. 파일 처음 ${HEADER_SEARCH_LIMIT}행 안에 컬럼명이 2개 이상 있는 행이 필요합니다.`
-    );
-  }
-  const { rowNumber: headerRowNumber, headers } = found;
-
-  const headerRowRef = sheet.getRow(headerRowNumber);
+  let headers: string[] | null = null;
   const headerCellStyles: (CellStyle | undefined)[] = [];
   const columnWidths: (number | undefined)[] = [];
-  for (let c = 1; c <= headers.length; c++) {
-    headerCellStyles[c - 1] = { ...headerRowRef.getCell(c).style };
-    columnWidths[c - 1] = sheet.getColumn(c).width;
-  }
-
-  const rows: unknown[][] = [];
   const dataNumberFormats: (string | undefined)[] = [];
-  for (let r = headerRowNumber + 1; r <= sheet.rowCount; r++) {
-    const row = sheet.getRow(r);
-    const values: unknown[] = [];
-    for (let c = 1; c <= headers.length; c++) {
-      values[c - 1] = normalizeCellValue(row.getCell(c).value);
+  const rows: unknown[][] = [];
+  const skippedSheets: string[] = [];
+
+  // 시트가 여러 개면 순서대로 훑으면서, 첫 번째로 찾은 헤더를 이 파일의 기준으로 삼고
+  // 같은 헤더를 가진 뒤쪽 시트들의 데이터도 이어붙인다. 표 형태가 아니거나(안내문 등)
+  // 헤더가 다른 시트는 데이터에서 제외하고 파일명에 남겨 사용자에게 알린다.
+  for (const sheet of workbook.worksheets) {
+    const found = findHeaderRow(sheet);
+    if (!found) {
+      if (headers) skippedSheets.push(sheet.name);
+      continue;
     }
-    if (!isRowEmpty(values)) {
-      if (rows.length === 0) {
-        for (let c = 1; c <= headers.length; c++) {
-          dataNumberFormats[c - 1] = row.getCell(c).numFmt;
-        }
+
+    if (!headers) {
+      headers = found.headers;
+      const headerRowRef = sheet.getRow(found.rowNumber);
+      for (let c = 1; c <= headers.length; c++) {
+        headerCellStyles[c - 1] = { ...headerRowRef.getCell(c).style };
+        columnWidths[c - 1] = sheet.getColumn(c).width;
       }
-      rows.push(values);
+    } else if (!headersMatch(diffHeaders(headers, found.headers))) {
+      skippedSheets.push(sheet.name);
+      continue;
+    }
+
+    for (let r = found.rowNumber + 1; r <= sheet.rowCount; r++) {
+      const row = sheet.getRow(r);
+      const values: unknown[] = [];
+      for (let c = 1; c <= headers.length; c++) {
+        values[c - 1] = normalizeCellValue(row.getCell(c).value);
+      }
+      if (!isRowEmpty(values)) {
+        if (rows.length === 0) {
+          for (let c = 1; c <= headers.length; c++) {
+            dataNumberFormats[c - 1] = row.getCell(c).numFmt;
+          }
+        }
+        rows.push(values);
+      }
     }
   }
 
-  return { fileName: file.name, headers, rows, headerCellStyles, columnWidths, dataNumberFormats };
+  if (!headers) {
+    throw new Error(
+      `헤더 행을 찾을 수 없습니다. 각 시트 처음 ${HEADER_SEARCH_LIMIT}행 안에 컬럼명이 2개 이상 있는 행이 필요합니다.`
+    );
+  }
+
+  return {
+    fileName: file.name,
+    headers,
+    rows,
+    headerCellStyles,
+    columnWidths,
+    dataNumberFormats,
+    skippedSheets,
+  };
 }
 
 function normalizeCellValue(value: unknown): unknown {

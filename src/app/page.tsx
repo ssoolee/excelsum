@@ -88,6 +88,11 @@ export default function Home() {
             continue;
           }
 
+          const skippedSheetsMessage =
+            parsed.skippedSheets.length > 0
+              ? `제외된 시트: ${parsed.skippedSheets.join(", ")} (헤더가 다르거나 표 형태가 아님)`
+              : undefined;
+
           if (!referenceHeadersRef.current) {
             referenceHeadersRef.current = parsed.headers;
             updateEntry(id, {
@@ -96,6 +101,7 @@ export default function Home() {
                 fileName: file.name,
                 status: "ok",
                 rowCount: parsed.rows.length,
+                message: skippedSheetsMessage,
               },
               parsed,
             });
@@ -110,6 +116,7 @@ export default function Home() {
                 fileName: file.name,
                 status: "ok",
                 rowCount: parsed.rows.length,
+                message: skippedSheetsMessage,
               },
               parsed,
             });
