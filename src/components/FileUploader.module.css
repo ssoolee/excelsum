@@ -7,19 +7,29 @@
   text-align: center;
   padding: clamp(1.5rem, 6cqi, 3rem) clamp(1rem, 4cqi, 2rem);
   border: 2px dashed var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--surface);
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+    box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .dropzone.dragOver {
   border-color: var(--accent);
   background: var(--accent-surface);
+  box-shadow: var(--shadow-md);
+  transform: scale(1.01);
+}
+
+.icon {
+  color: var(--accent);
+  opacity: 0.85;
 }
 
 .title {
-  font-size: clamp(1rem, 2.5cqi, 1.15rem);
-  font-weight: 600;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.05rem, 2.5cqi, 1.25rem);
   color: var(--text);
   margin: 0;
 }
@@ -40,10 +50,12 @@
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
 }
 
 .selectButton:hover:not(:disabled) {
-  filter: brightness(1.08);
+  background: var(--accent-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .selectButton:disabled {

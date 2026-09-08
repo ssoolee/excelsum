@@ -1,42 +1,54 @@
 :root {
-  --background: #f7f7f8;
-  --foreground: #171717;
+  --background: #f7f5ee;
+  --foreground: #241f18;
   --surface: #ffffff;
-  --surface-strong: #f0f0f2;
-  --border: #dcdce1;
-  --text: #171717;
-  --text-muted: #6b6b76;
-  --accent: #2563eb;
-  --accent-surface: #eaf0ff;
+  --surface-strong: #f1ede1;
+  --border: #e4ddc9;
+  --text: #241f18;
+  --text-muted: #7a7263;
+  --accent: #3f8f5c;
+  --accent-hover: #357a4e;
+  --accent-surface: #e6f4ea;
   --accent-contrast: #ffffff;
+  --accent-warm: #ff9a5a;
+  --accent-warm-surface: #fff0e2;
   --ok-surface: #e3f6ea;
   --ok-text: #157a45;
   --warn-surface: #fff4e0;
   --warn-text: #9a6400;
   --error-surface: #fde8e8;
   --error-text: #b42318;
-  --muted-surface: #ececef;
+  --muted-surface: #ede9db;
+  --shadow-color: 36deg 20% 20%;
+  --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.08);
+  --shadow-md: 0 6px 20px -4px hsl(var(--shadow-color) / 0.16);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #101012;
-    --foreground: #ededed;
-    --surface: #18181b;
-    --surface-strong: #202024;
-    --border: #303036;
-    --text: #ededed;
-    --text-muted: #a1a1aa;
-    --accent: #5b8def;
-    --accent-surface: #1c2a4a;
-    --accent-contrast: #0a0a0a;
+    --background: #14120e;
+    --foreground: #f0ece1;
+    --surface: #1d1a15;
+    --surface-strong: #26221b;
+    --border: #373226;
+    --text: #f0ece1;
+    --text-muted: #a89f8c;
+    --accent: #6cc98a;
+    --accent-hover: #7fd69b;
+    --accent-surface: #1d3125;
+    --accent-contrast: #0a0f0a;
+    --accent-warm: #ffb27a;
+    --accent-warm-surface: #33241a;
     --ok-surface: #123524;
     --ok-text: #6fe3a0;
     --warn-surface: #3a2c0f;
     --warn-text: #f0b93a;
     --error-surface: #3a1616;
     --error-text: #f18b8b;
-    --muted-surface: #26262b;
+    --muted-surface: #26221b;
+    --shadow-color: 0deg 0% 0%;
+    --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.4);
+    --shadow-md: 0 8px 24px -4px hsl(var(--shadow-color) / 0.5);
     color-scheme: dark;
   }
 }
@@ -57,7 +69,7 @@ body {
   flex-direction: column;
   color: var(--text);
   background: var(--background);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), "Malgun Gothic", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -75,4 +87,15 @@ a {
 
 button {
   font-family: inherit;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

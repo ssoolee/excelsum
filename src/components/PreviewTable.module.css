@@ -8,7 +8,7 @@
 .scrollArea {
   overflow-x: auto;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   max-height: min(60vh, 520px);
   overflow-y: auto;
 }
@@ -31,13 +31,25 @@
 .table th {
   position: sticky;
   top: 0;
-  background: var(--surface-strong);
+  background: var(--accent-surface);
   color: var(--text);
   font-weight: 600;
 }
 
 .table td {
   color: var(--text-muted);
+}
+
+.table tbody tr {
+  transition: background-color 0.1s ease;
+}
+
+.table tbody tr:nth-child(even) {
+  background: var(--surface-strong);
+}
+
+.table tbody tr:hover {
+  background: var(--accent-surface);
 }
 
 .note {

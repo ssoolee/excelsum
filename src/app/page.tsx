@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { FileUploader } from "@/components/FileUploader";
 import { FileStatusList } from "@/components/FileStatusList";
+import { Mascot } from "@/components/Mascot";
 import { PreviewTable } from "@/components/PreviewTable";
 import {
   MAX_FILES,
@@ -205,10 +206,13 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.heading}>엑셀 통합 정리</h1>
-        <p className={styles.subheading}>
-          동일한 서식의 엑셀 파일 여러 개를 올리면 하나로 정리해 드립니다.
-        </p>
+        <Mascot size={64} className={styles.headerMascot} />
+        <div>
+          <h1 className={styles.heading}>엑셀 통합 정리</h1>
+          <p className={styles.subheading}>
+            동일한 서식의 엑셀 파일 여러 개를 올리면 하나로 정리해 드립니다.
+          </p>
+        </div>
       </header>
 
       <main className={styles.main}>
@@ -232,40 +236,47 @@ export default function Home() {
         </section>
 
         <section className={styles.rightColumn}>
-          {displayedMerged && preview ? (
-            <>
-              <div className={styles.resultHeader}>
-                <h2 className={styles.resultTitle}>통합 결과 미리보기</h2>
-                <div className={styles.resultActions}>
-                  <button
-                    type="button"
-                    className={styles.renumberButton}
-                    onClick={() => setRenumbered((r) => !r)}
-                  >
-                    {renumbered ? "원래 연번으로 되돌리기" : "연번 다시 매기기"}
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.downloadButton}
-                    onClick={handleDownload}
-                    disabled={isDownloading}
-                  >
-                    {isDownloading ? "생성 중..." : "엑셀 다운로드"}
-                  </button>
+          <div className={styles.resultPanel}>
+            {displayedMerged && preview ? (
+              <>
+                <div className={styles.resultHeader}>
+                  <h2 className={styles.resultTitle}>통합 결과 미리보기</h2>
+                  <div className={styles.resultActions}>
+                    <button
+                      type="button"
+                      className={styles.renumberButton}
+                      onClick={() => setRenumbered((r) => !r)}
+                    >
+                      {renumbered ? "원래 연번으로 되돌리기" : "연번 다시 매기기"}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.downloadButton}
+                      onClick={handleDownload}
+                      disabled={isDownloading}
+                    >
+                      {isDownloading ? "생성 중..." : "엑셀 다운로드"}
+                    </button>
+                  </div>
                 </div>
+                <PreviewTable
+                  headers={displayedMerged.headers}
+                  rows={preview.rows}
+                  totalRowCount={displayedMerged.rows.length}
+                  truncated={preview.truncated}
+                />
+              </>
+            ) : (
+              <div className={styles.emptyState}>
+                <Mascot size={88} />
+                <p className={styles.emptyStateText}>
+                  정상 인식된 파일이 쌓이면
+                  <br />
+                  이곳에 통합 결과 미리보기가 표시됩니다.
+                </p>
               </div>
-              <PreviewTable
-                headers={displayedMerged.headers}
-                rows={preview.rows}
-                totalRowCount={displayedMerged.rows.length}
-                truncated={preview.truncated}
-              />
-            </>
-          ) : (
-            <p className={styles.emptyState}>
-              정상 인식된 파일이 쌓이면 이곳에 통합 결과 미리보기가 표시됩니다.
-            </p>
-          )}
+            )}
+          </div>
         </section>
       </main>
     </div>
