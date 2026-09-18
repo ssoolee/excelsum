@@ -213,7 +213,7 @@ export default function Home() {
       <header className={styles.header}>
         <Mascot size={64} className={styles.headerMascot} />
         <div>
-          <h1 className={styles.heading}>엑셀 통합 정리</h1>
+          <h1 className={styles.heading}>엑셀 통합 정리 - by 고즈너기</h1>
           <p className={styles.subheading}>
             동일한 서식의 엑셀 파일 여러 개를 올리면 하나로 정리해 드립니다.
           </p>

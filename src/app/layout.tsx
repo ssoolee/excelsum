@@ -15,7 +15,7 @@ const jua = Jua({
 });
 
 export const metadata: Metadata = {
-  title: "엑셀 통합 정리",
+  title: "엑셀 통합 정리 - by 고즈너기",
   description: "동일 서식의 엑셀 파일 여러 개를 하나로 통합 정리하는 웹서비스",
 };
 

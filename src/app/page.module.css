@@ -76,9 +76,9 @@
 }
 
 .resetButton {
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-muted);
+  border: 1px solid var(--accent-warm);
+  background: var(--accent-warm);
+  color: var(--accent-contrast);
   border-radius: 8px;
   padding: 0.3rem 0.75rem;
   font-size: 0.8rem;
@@ -86,8 +86,8 @@
 }
 
 .resetButton:hover {
-  background: var(--surface);
-  border-color: var(--text-muted);
+  background: var(--accent-warm);
+  filter: brightness(0.92);
 }
 
 .resultPanel {
