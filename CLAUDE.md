@@ -17,9 +17,12 @@ npx tsc --noEmit # 타입 체크 (별도 test 스크립트 없음)
 
 배포:
 
+앞으로 "배포"를 요청받으면 Firebase와 Vercel 두 곳 모두에 동시에 배포한다.
+
 ```bash
 npm run build
-npx -y firebase-tools@latest deploy --only hosting
+npx -y firebase-tools@latest deploy --only hosting   # https://excelsum-app.web.app
+npx -y vercel deploy --prod --yes                     # https://excelsum-two.vercel.app (Vercel 프로젝트명: excelsum)
 ```
 
 ## 아키텍처
@@ -36,8 +39,8 @@ npx -y firebase-tools@latest deploy --only hosting
 
 ## 배포 정보
 
-- Firebase 프로젝트 ID: `excelsum-app` (`.firebaserc`)
-- Hosting URL: https://excelsum-app.web.app
+- Firebase 프로젝트 ID: `excelsum-app` (`.firebaserc`) — Hosting URL: https://excelsum-app.web.app
+- Vercel 프로젝트명: `excelsum` (`goznuki` 계정, `.vercel/project.json`) — Production URL: https://excelsum-two.vercel.app
 - GitHub: https://github.com/ssoolee/excelsum
 
 <!-- BEGIN:nextjs-agent-rules -->
