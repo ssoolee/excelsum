@@ -25,6 +25,18 @@ npx -y firebase-tools@latest deploy --only hosting   # https://excelsum-app.web.
 npx -y vercel deploy --prod --yes                     # https://excelsum-two.vercel.app (Vercel 프로젝트명: excelsum)
 ```
 
+오프라인 실행 파일 만들기:
+
+행정정보망처럼 외부 인터넷 접속이 막힌 PC에서 쓸 수 있도록, Node.js SEA(Single Executable Application) 기능으로 실행 파일 하나에 앱 전체를 담아 배포할 수 있다.
+
+```bash
+npm run build:offline   # dist-offline/excelsum-offline.exe 생성
+```
+
+생성된 `excelsum-offline.exe` **파일 하나만** USB나 내부 공유폴더로 옮기면 된다(정적 파일이 exe 안에 내장되어 있어 폴더째로 옮길 필요 없음). 대상 PC에서 더블클릭하면 로컬 서버가 뜨고 기본 브라우저가 자동으로 열린다 — 인터넷 연결도, 별도 설치도 필요 없다. 콘솔 창을 닫으면 서비스가 종료된다.
+
+주의: 서명되지 않은 exe라 Windows SmartScreen이나 백신이 경고할 수 있다("추가 정보 → 실행"으로 우회 가능). 조직 보안 정책상 출처 불명 exe 실행 자체가 차단된 PC라면 IT 부서의 예외 승인이 필요하며, 이는 코드로 해결할 수 없는 정책 영역이다. 파일 크기는 Node 런타임 전체를 포함하므로 약 80~100MB로 크다.
+
 ## 아키텍처
 
 - **핵심 로직은 `src/lib/excel.ts`에 순수 함수로 분리되어 있다.** 엑셀 파싱(`parseExcelFile`), 헤더 비교(`diffHeaders`/`headersMatch`/`describeHeaderDiff`), 병합(`mergeParsedFiles`), 결과 파일 생성(`buildWorkbookBlob`)이 UI와 독립적으로 테스트 가능하다. 파싱/생성 라이브러리는 `exceljs`를 쓴다 — npm의 `xlsx` 패키지는 패치되지 않은 고위험 취약점(프로토타입 오염, ReDoS)이 있어 의도적으로 배제했다.

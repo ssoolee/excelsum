@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:offline": "node scripts/build-offline.js"
   },
   "dependencies": {
     "exceljs": "^4.4.0",
@@ -20,6 +21,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "postject": "^1.0.0-alpha.6",
     "typescript": "^5"
   }
 }

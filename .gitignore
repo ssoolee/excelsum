@@ -20,6 +20,11 @@
 # production
 /build
 
+# offline exe build artifacts
+/sea-config.json
+/sea-prep.blob
+/dist-offline/
+
 # misc
 .DS_Store
 *.pem
