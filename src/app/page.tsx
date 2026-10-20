@@ -217,6 +217,9 @@ export default function Home() {
           <p className={styles.subheading}>
             동일한 서식의 엑셀 파일 여러 개를 올리면 하나로 정리해 드립니다.
           </p>
+          <p className={styles.privacyNote}>
+            업로드한 파일은 브라우저 안에서만 처리되고 어디에도 저장되지 않으니 안심하고 사용하세요.
+          </p>
         </div>
       </header>
 
