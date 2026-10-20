@@ -35,6 +35,8 @@ npm run build:offline   # dist-offline/excelsum-offline.exe 생성
 
 생성된 `excelsum-offline.exe` **파일 하나만** USB나 내부 공유폴더로 옮기면 된다(정적 파일이 exe 안에 내장되어 있어 폴더째로 옮길 필요 없음). 대상 PC에서 더블클릭하면 로컬 서버가 뜨고 기본 브라우저가 자동으로 열린다 — 인터넷 연결도, 별도 설치도 필요 없다. 콘솔 창을 닫으면 서비스가 종료된다.
 
+첫 화면과 `/guide`의 exe 다운로드 링크는 GitHub Releases의 `releases/latest/download/excelsum-offline.exe`를 가리킨다(`src/lib/links.ts`). exe를 새로 빌드하면 새 릴리스에 `excelsum-offline.exe`라는 이름으로 첨부해야 링크가 최신 파일을 받는다. 오프라인 빌드는 `NEXT_PUBLIC_OFFLINE=1`로 빌드되어 exe 안에서는 이 링크가 숨겨진다 — 그래서 `build:offline` 직후의 `out/`은 오프라인용이니, 웹 배포 전에는 반드시 `npm run build`를 다시 실행할 것.
+
 주의: 서명되지 않은 exe라 Windows SmartScreen이나 백신이 경고할 수 있다("추가 정보 → 실행"으로 우회 가능). 조직 보안 정책상 출처 불명 exe 실행 자체가 차단된 PC라면 IT 부서의 예외 승인이 필요하며, 이는 코드로 해결할 수 없는 정책 영역이다. 파일 크기는 Node 런타임 전체를 포함하므로 약 80~100MB로 크다.
 
 ## 아키텍처

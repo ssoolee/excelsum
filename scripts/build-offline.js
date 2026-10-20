@@ -37,6 +37,8 @@ function collectAssets(dir, outDir, rootDir, assets) {
 
 function main() {
   console.log("1/6 정적 사이트 빌드 (npm run build)...");
+  // 오프라인 빌드에서는 exe 다운로드 링크처럼 인터넷이 필요한 요소를 숨긴다(src/lib/links.ts).
+  process.env.NEXT_PUBLIC_OFFLINE = "1";
   run("npm run build");
 
   if (!fs.existsSync(OUT_DIR)) {

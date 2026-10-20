@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { FileUploader } from "@/components/FileUploader";
 import { FileStatusList } from "@/components/FileStatusList";
 import { Mascot } from "@/components/Mascot";
@@ -20,6 +21,7 @@ import {
   type ParsedFile,
 } from "@/lib/excel";
 import type { FileEntry } from "@/lib/types";
+import { IS_OFFLINE_BUILD, OFFLINE_EXE_URL } from "@/lib/links";
 import styles from "./page.module.css";
 
 interface Item {
@@ -217,11 +219,44 @@ export default function Home() {
           <p className={styles.subheading}>
             동일한 서식의 엑셀 파일 여러 개를 올리면 하나로 정리해 드립니다.
           </p>
-          <p className={styles.privacyNote}>
-            업로드한 파일은 브라우저 안에서만 처리되고 어디에도 저장되지 않으니 안심하고 사용하세요.
-          </p>
+          <nav className={styles.headerLinks}>
+            <Link href="/guide" className={styles.headerLink}>
+              사용법 보기
+            </Link>
+            {!IS_OFFLINE_BUILD && (
+              <a href={OFFLINE_EXE_URL} className={styles.headerLink}>
+                오프라인용 실행파일(exe) 받기
+              </a>
+            )}
+          </nav>
         </div>
       </header>
+
+      <section className={styles.securityNote} aria-label="자료 보안 안내">
+        <svg
+          className={styles.securityIcon}
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3z" />
+          <path d="M9 12l2 2 4-4" />
+        </svg>
+        <div>
+          <p className={styles.securityTitle}>자료 보안, 걱정하지 마세요</p>
+          <p className={styles.securityText}>
+            올린 엑셀 파일은 서버로 전송되지 않고 지금 쓰고 있는 브라우저 안에서만 처리됩니다.
+            어디에도 저장되지 않으며, 창을 닫으면 내용이 모두 사라집니다.
+            {!IS_OFFLINE_BUILD && " 인터넷이 차단된 PC에서는 오프라인용 실행파일을 쓰면 됩니다."}
+          </p>
+        </div>
+      </section>
 
       <main className={styles.main}>
         <section className={styles.leftColumn}>

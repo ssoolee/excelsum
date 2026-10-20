@@ -42,8 +42,15 @@ const server = http.createServer((req, res) => {
   let body = readAsset(servedKey);
 
   if (!body && !key.includes(".")) {
-    servedKey = `${key.replace(/\/$/, "")}/index.html`;
-    body = readAsset(servedKey);
+    // Next 정적 내보내기는 /guide를 guide.html로 만든다.
+    const base = key.replace(/\/$/, "");
+    for (const candidate of [`${base}.html`, `${base}/index.html`]) {
+      body = readAsset(candidate);
+      if (body) {
+        servedKey = candidate;
+        break;
+      }
+    }
   }
 
   if (!body) {
