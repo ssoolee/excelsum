@@ -2,11 +2,11 @@ import type { FileEntry } from "@/lib/types";
 import styles from "./FileStatusList.module.css";
 
 const STATUS_LABEL: Record<FileEntry["status"], string> = {
-  processing: "처리 중",
-  ok: "정상",
-  mismatch: "서식 불일치",
-  empty: "데이터 없음",
-  error: "오류",
+  processing: "⏳ 처리 중",
+  ok: "✅ 정상",
+  mismatch: "⚠️ 서식 불일치",
+  empty: "📭 데이터 없음",
+  error: "❌ 오류",
 };
 
 interface FileStatusListProps {

@@ -3,6 +3,13 @@
   flex-shrink: 0;
 }
 
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .animated {
   animation: bob 3.2s ease-in-out infinite;
 }

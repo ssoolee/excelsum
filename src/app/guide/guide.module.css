@@ -1,5 +1,5 @@
 .page {
-  min-height: 100vh;
+  flex: 1 0 auto;
   padding: clamp(1.25rem, 4vw, 3rem);
   display: flex;
   flex-direction: column;
@@ -169,7 +169,7 @@
 }
 
 .infoList {
-  padding-left: 1.2rem;
+  list-style: none;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;

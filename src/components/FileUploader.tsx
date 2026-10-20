@@ -50,9 +50,9 @@ export function FileUploader({ onFilesSelected, disabled }: FileUploaderProps) {
         <path d="M7.5 8.5 12 4l4.5 4.5" />
         <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
       </svg>
-      <p className={styles.title}>엑셀 파일 업로드</p>
+      <p className={styles.title}>📤 엑셀 파일 업로드</p>
       <p className={styles.hint}>
-        동일한 서식의 .xlsx 파일 여러 개를 이곳에 끌어다 놓으세요
+        동일한 서식의 .xlsx 파일 여러 개를 이곳에 끌어다 놓으세요 👇
       </p>
       <button
         type="button"
@@ -60,7 +60,7 @@ export function FileUploader({ onFilesSelected, disabled }: FileUploaderProps) {
         onClick={() => inputRef.current?.click()}
         disabled={disabled}
       >
-        파일 선택
+        📁 파일 선택
       </button>
       <input
         ref={inputRef}

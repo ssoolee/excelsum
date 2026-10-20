@@ -1,0 +1,29 @@
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem 0.7rem;
+  padding: 1.25rem 1rem 1.75rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.email {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.email:hover {
+  color: var(--accent-hover);
+}
+
+/* 줄바꿈되면 가운뎃점이 줄 끝에 홀로 남지 않도록 좁은 폭에서는 숨긴다. */
+@media (max-width: 520px) {
+  .divider {
+    display: none;
+  }
+}

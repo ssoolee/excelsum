@@ -4,7 +4,7 @@ import { IS_OFFLINE_BUILD, OFFLINE_EXE_URL } from "@/lib/links";
 import styles from "./guide.module.css";
 
 export const metadata: Metadata = {
-  title: "사용법 - 엑셀 통합 정리 by AI행정앱연구소",
+  title: "사용법 - 엑셀 통합 정리 by AI행정앱제작소",
   description: "엑셀 통합 정리 서비스 사용법 안내",
 };
 
@@ -12,34 +12,34 @@ export const metadata: Metadata = {
 
 const STEPS = [
   {
-    title: "같은 서식의 엑셀 파일을 준비해요",
-    face: "/guide/face-smile.png",
+    title: "📂 같은 서식의 엑셀 파일을 준비해요",
+    face: "/character/face-smile.png",
     body: "제목 줄(헤더)이 똑같은 .xlsx 파일들을 모아 주세요. 한 번에 최대 50개, 파일 하나당 10MB까지 올릴 수 있어요.",
-    tip: "읍·면·동이나 부서별로 따로 받은 취합 양식이 딱 좋은 예예요.",
+    tip: "💡 읍·면·동이나 부서별로 따로 받은 취합 양식이 딱 좋은 예예요.",
   },
   {
-    title: "파일을 올려요",
-    face: "/guide/face-wink.png",
+    title: "📤 파일을 올려요",
+    face: "/character/face-wink.png",
     body: "첫 화면 왼쪽 업로드 칸에 파일을 끌어다 놓거나, 버튼을 눌러 여러 개를 한꺼번에 고르세요.",
-    tip: "가장 먼저 정상으로 읽힌 파일의 제목 줄이 기준 서식이 돼요.",
+    tip: "💡 가장 먼저 정상으로 읽힌 파일의 제목 줄이 기준 서식이 돼요.",
   },
   {
-    title: "파일별 상태를 확인해요",
-    face: "/guide/face-wow.png",
-    body: "파일마다 ‘정상’, ‘서식 불일치’, ‘데이터 없음’, ‘오류’ 중 하나가 표시돼요. ‘정상’인 파일만 하나로 합쳐져요.",
-    tip: "‘서식 불일치’ 파일은 어떤 열이 다른지 알려드리니, 고친 뒤 다시 올리면 돼요.",
+    title: "🔍 파일별 상태를 확인해요",
+    face: "/character/face-wow.png",
+    body: "파일마다 ‘✅ 정상’, ‘⚠️ 서식 불일치’, ‘📭 데이터 없음’, ‘❌ 오류’ 중 하나가 표시돼요. ‘정상’인 파일만 하나로 합쳐져요.",
+    tip: "💡 ‘서식 불일치’ 파일은 어떤 열이 다른지 알려드리니, 고친 뒤 다시 올리면 돼요.",
   },
   {
-    title: "통합 결과를 미리 봐요",
-    face: "/guide/face-calm.png",
+    title: "👀 통합 결과를 미리 봐요",
+    face: "/character/face-calm.png",
     body: "오른쪽에 합쳐진 표가 나타나요. 맨 오른쪽 ‘출처 파일’ 열에서 각 행이 어느 파일에서 왔는지 확인할 수 있어요.",
-    tip: "연번만 있고 내용이 빈 행이 있으면 ‘첫 칸만 있는 행 삭제’ 버튼으로 정리할 수 있어요.",
+    tip: "💡 연번만 있고 내용이 빈 행이 있으면 ‘첫 칸만 있는 행 삭제’ 버튼으로 정리할 수 있어요.",
   },
   {
-    title: "엑셀로 내려받아요",
-    face: "/guide/face-happy.png",
+    title: "⬇️ 엑셀로 내려받아요",
+    face: "/character/face-happy.png",
     body: "‘엑셀 다운로드’를 누르면 ‘통합결과_날짜시각.xlsx’ 파일이 저장돼요. 다른 파일을 작업하려면 ‘초기화’를 누르세요.",
-    tip: "브라우저 창을 닫으면 올린 내용은 모두 사라지니 결과 파일을 꼭 저장해 두세요.",
+    tip: "💡 브라우저 창을 닫으면 올린 내용은 모두 사라지니 결과 파일을 꼭 저장해 두세요.",
   },
 ];
 
@@ -61,21 +61,21 @@ export default function GuidePage() {
   return (
     <div className={styles.page}>
       <Link href="/" className={styles.backLink}>
-        ← 엑셀 통합 정리로 돌아가기
+        🏠 엑셀 통합 정리로 돌아가기
       </Link>
 
       <header className={styles.hero}>
         <Character
-          src="/guide/hero.png"
+          src="/character/hero.png"
           alt="손을 흔드는 물방울 캐릭터 평안이"
           className={styles.heroCharacter}
         />
         <div className={styles.bubble}>
-          <p className={styles.greeting}>안녕하세요, 평안이예요!</p>
-          <h1 className={styles.heading}>엑셀 통합 정리, 이렇게 써요!</h1>
+          <p className={styles.greeting}>👋 안녕하세요, 평안이예요!</p>
+          <h1 className={styles.heading}>엑셀 통합 정리, 이렇게 써요! 📊</h1>
           <p className={styles.lead}>
             같은 서식의 엑셀 파일 여러 개를 올리면 하나의 파일로 합쳐 드려요.
-            다섯 단계만 따라 해 보세요.
+            다섯 단계만 따라 해 보세요 🙌
           </p>
         </div>
       </header>
@@ -100,28 +100,28 @@ export default function GuidePage() {
 
       <section className={styles.infoGrid}>
         <div className={styles.infoCard}>
-          <Character src="/guide/pose-heart.png" className={styles.infoCharacter} />
-          <h2 className={styles.infoTitle}>자료 보안은 이렇게 지켜져요</h2>
+          <Character src="/character/pose-heart.png" className={styles.infoCharacter} />
+          <h2 className={styles.infoTitle}>🔒 자료 보안은 이렇게 지켜져요</h2>
           <ul className={styles.infoList}>
-            <li>올린 파일은 서버로 전송되지 않고, 쓰고 있는 브라우저 안에서만 처리돼요.</li>
-            <li>파일 내용을 어디에도 저장하지 않아요. 창을 닫으면 모두 사라져요.</li>
-            <li>회원가입이나 로그인이 필요 없어요.</li>
+            <li>🚫 올린 파일은 서버로 전송되지 않고, 쓰고 있는 브라우저 안에서만 처리돼요.</li>
+            <li>🗂️ 파일 내용을 어디에도 저장하지 않아요. 창을 닫으면 모두 사라져요.</li>
+            <li>🙅 회원가입이나 로그인이 필요 없어요.</li>
           </ul>
         </div>
 
         {!IS_OFFLINE_BUILD && (
           <div className={styles.infoCard}>
-            <h2 className={styles.infoTitle}>인터넷이 막힌 PC에서 쓰려면</h2>
+            <h2 className={styles.infoTitle}>💻 인터넷이 막힌 PC에서 쓰려면</h2>
             <p className={styles.infoText}>
               행정정보망처럼 외부 인터넷이 차단된 PC에서는 오프라인용 실행파일을 쓰세요.
               파일 하나만 USB나 내부 공유폴더로 옮겨 더블클릭하면 브라우저가 열리고
               바로 쓸 수 있어요. 검은 콘솔 창을 닫으면 종료돼요.
             </p>
             <a href={OFFLINE_EXE_URL} className={styles.downloadLink}>
-              오프라인용 실행파일(exe) 받기 · 약 95MB
+              💾 오프라인용 실행파일(exe) 받기 · 약 95MB
             </a>
             <p className={styles.infoNote}>
-              서명되지 않은 파일이라 Windows가 경고하면 ‘추가 정보 → 실행’을 누르세요.
+              ⚠️ 서명되지 않은 파일이라 Windows가 경고하면 ‘추가 정보 → 실행’을 누르세요.
               기관 보안 정책으로 실행이 막혀 있다면 전산 담당 부서에 문의해 주세요.
             </p>
           </div>
@@ -129,9 +129,9 @@ export default function GuidePage() {
       </section>
 
       <div className={styles.cta}>
-        <Character src="/guide/pose-jump.png" className={styles.ctaCharacter} />
+        <Character src="/character/pose-jump.png" className={styles.ctaCharacter} />
         <Link href="/" className={styles.ctaButton}>
-          지금 바로 시작하기
+          🚀 지금 바로 시작하기
         </Link>
       </div>
     </div>

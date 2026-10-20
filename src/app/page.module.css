@@ -1,5 +1,6 @@
 .page {
-  min-height: 100vh;
+  flex: 1 0 auto;
+  width: 100%;
   padding: clamp(1.25rem, 4vw, 3rem);
   display: flex;
   flex-direction: column;
@@ -67,7 +68,8 @@
 
 .securityIcon {
   flex-shrink: 0;
-  color: var(--accent);
+  font-size: 1.8rem;
+  line-height: 1;
 }
 
 .securityTitle {
@@ -77,8 +79,12 @@
   color: var(--text);
 }
 
-.securityText {
-  margin: 0.2rem 0 0;
+.securityPoints {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.2rem;
+  margin-top: 0.35rem;
   font-size: clamp(0.8rem, 0.6vw + 0.65rem, 0.88rem);
   line-height: 1.6;
   color: var(--text-muted);

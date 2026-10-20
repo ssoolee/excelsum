@@ -213,19 +213,19 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <Mascot size={64} className={styles.headerMascot} />
+        <Mascot size={76} className={styles.headerMascot} />
         <div>
-          <h1 className={styles.heading}>엑셀 통합 정리 - by AI행정앱연구소</h1>
+          <h1 className={styles.heading}>엑셀 통합 정리 - by AI행정앱제작소</h1>
           <p className={styles.subheading}>
-            동일한 서식의 엑셀 파일 여러 개를 올리면 하나로 정리해 드립니다.
+            📂 동일한 서식의 엑셀 파일 여러 개를 올리면 하나로 정리해 드립니다 ✨
           </p>
           <nav className={styles.headerLinks}>
             <Link href="/guide" className={styles.headerLink}>
-              사용법 보기
+              📖 사용법 보기
             </Link>
             {!IS_OFFLINE_BUILD && (
               <a href={OFFLINE_EXE_URL} className={styles.headerLink}>
-                오프라인용 실행파일(exe) 받기
+                💾 오프라인용 실행파일(exe) 받기
               </a>
             )}
           </nav>
@@ -233,28 +233,17 @@ export default function Home() {
       </header>
 
       <section className={styles.securityNote} aria-label="자료 보안 안내">
-        <svg
-          className={styles.securityIcon}
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3z" />
-          <path d="M9 12l2 2 4-4" />
-        </svg>
+        <span className={styles.securityIcon} aria-hidden="true">
+          🛡️
+        </span>
         <div>
-          <p className={styles.securityTitle}>자료 보안, 걱정하지 마세요</p>
-          <p className={styles.securityText}>
-            올린 엑셀 파일은 서버로 전송되지 않고 지금 쓰고 있는 브라우저 안에서만 처리됩니다.
-            어디에도 저장되지 않으며, 창을 닫으면 내용이 모두 사라집니다.
-            {!IS_OFFLINE_BUILD && " 인터넷이 차단된 PC에서는 오프라인용 실행파일을 쓰면 됩니다."}
-          </p>
+          <p className={styles.securityTitle}>🔒 자료 보안, 걱정하지 마세요!</p>
+          <ul className={styles.securityPoints}>
+            <li>🚫 서버로 전송하지 않아요 · 지금 쓰는 브라우저 안에서만 처리</li>
+            <li>🗂️ 어디에도 저장하지 않아요</li>
+            <li>🧹 창을 닫으면 내용이 모두 사라져요</li>
+            {!IS_OFFLINE_BUILD && <li>💻 인터넷이 차단된 PC는 오프라인용 실행파일로 OK</li>}
+          </ul>
         </div>
       </section>
 
@@ -267,10 +256,10 @@ export default function Home() {
           {items.length > 0 && (
             <div className={styles.summaryRow}>
               <span>
-                정상 {okCount}개 · 확인 필요 {problemCount}개
+                ✅ 정상 {okCount}개 · ⚠️ 확인 필요 {problemCount}개
               </span>
               <button type="button" className={styles.resetButton} onClick={handleReset}>
-                초기화
+                🔄 초기화
               </button>
             </div>
           )}
@@ -283,7 +272,7 @@ export default function Home() {
             {displayedMerged && preview ? (
               <>
                 <div className={styles.resultHeader}>
-                  <h2 className={styles.resultTitle}>통합 결과 미리보기</h2>
+                  <h2 className={styles.resultTitle}>👀 통합 결과 미리보기</h2>
                   <div className={styles.resultActions}>
                     {sparseRowCount > 0 && (
                       <button
@@ -292,8 +281,8 @@ export default function Home() {
                         onClick={() => setSparseRemoved((r) => !r)}
                       >
                         {sparseRemoved
-                          ? `삭제한 행 복원 (${sparseRowCount}개)`
-                          : `첫 칸만 있는 행 삭제 (${sparseRowCount}개)`}
+                          ? `↩️ 삭제한 행 복원 (${sparseRowCount}개)`
+                          : `🧹 첫 칸만 있는 행 삭제 (${sparseRowCount}개)`}
                       </button>
                     )}
                     <button
@@ -302,7 +291,7 @@ export default function Home() {
                       onClick={handleDownload}
                       disabled={isDownloading}
                     >
-                      {isDownloading ? "생성 중..." : "엑셀 다운로드"}
+                      {isDownloading ? "⏳ 생성 중..." : "⬇️ 엑셀 다운로드"}
                     </button>
                   </div>
                 </div>
@@ -315,11 +304,11 @@ export default function Home() {
               </>
             ) : (
               <div className={styles.emptyState}>
-                <Mascot size={88} />
+                <Mascot size={120} src="/character/pose-jump.png" />
                 <p className={styles.emptyStateText}>
-                  정상 인식된 파일이 쌓이면
+                  ✨ 정상 인식된 파일이 쌓이면
                   <br />
-                  이곳에 통합 결과 미리보기가 표시됩니다.
+                  이곳에 통합 결과 미리보기가 표시됩니다 👀
                 </p>
               </div>
             )}

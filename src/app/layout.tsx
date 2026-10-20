@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_KR, Jua } from "next/font/google";
+import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
 const notoSansKr = Noto_Sans_KR({
@@ -15,14 +16,17 @@ const jua = Jua({
 });
 
 export const metadata: Metadata = {
-  title: "엑셀 통합 정리 - by AI행정앱연구소",
+  title: "엑셀 통합 정리 - by AI행정앱제작소",
   description: "동일 서식의 엑셀 파일 여러 개를 하나로 통합 정리하는 웹서비스",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ko" className={`${notoSansKr.variable} ${jua.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }
