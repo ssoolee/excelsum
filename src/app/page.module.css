@@ -144,6 +144,45 @@
   filter: brightness(0.92);
 }
 
+/* 초기화 확인: 되돌릴 수 없는 동작이라 한 번 더 묻는다. */
+.resetConfirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--accent-warm);
+  border-radius: 12px;
+  background: var(--accent-surface);
+}
+
+.resetConfirmText {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.resetConfirmActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.resetCancelButton {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.resetCancelButton:hover {
+  border-color: var(--accent-warm);
+}
+
 .resultPanel {
   background: var(--surface);
   border: 1px solid var(--border);

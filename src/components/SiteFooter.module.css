@@ -1,7 +1,7 @@
-/* 가운데에 제작·피드백 안내, 오른쪽 구석에 평안이 소개 링크. */
+/* 제작·피드백 안내와 평안이 소개 링크를 모두 가운데로 모은다. */
 .footer {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 0.6rem 1rem;
   padding: 1.25rem 1rem 1.75rem;
@@ -11,7 +11,6 @@
 }
 
 .credits {
-  grid-column: 2;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -31,8 +30,6 @@
 }
 
 .characterLink {
-  grid-column: 3;
-  justify-self: end;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -53,19 +50,8 @@
   height: 22px;
 }
 
-/* 좁은 화면에서는 한 줄씩 쌓고, 가운뎃점이 줄 끝에 홀로 남지 않도록 숨긴다. */
+/* 좁은 화면에서는 가운뎃점이 줄 끝에 홀로 남지 않도록 숨긴다. */
 @media (max-width: 760px) {
-  .footer {
-    grid-template-columns: 1fr;
-    justify-items: center;
-  }
-
-  .credits,
-  .characterLink {
-    grid-column: 1;
-    justify-self: center;
-  }
-
   .divider {
     display: none;
   }

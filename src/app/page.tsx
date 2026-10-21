@@ -43,6 +43,8 @@ export default function Home() {
   const [unlockingCount, setUnlockingCount] = useState(0);
   const [passwordNotice, setPasswordNotice] = useState<string | null>(null);
   const [sparseRemoved, setSparseRemoved] = useState(false);
+  // 초기화는 되돌릴 수 없으므로 한 번 더 확인받는다.
+  const [confirmingReset, setConfirmingReset] = useState(false);
   const referenceHeadersRef = useRef<string[] | null>(null);
   // 한 번 통한 암호들은 이후 추가 업로드되는 파일에도 자동으로 써 본다(암호를 다시 묻지 않기 위함).
   const knownPasswordsRef = useRef<string[]>([]);
@@ -122,6 +124,7 @@ export default function Home() {
   const handleFilesSelected = useCallback(
     async (files: File[]) => {
       setWarning(null);
+      setConfirmingReset(false);
 
       const remainingSlots = MAX_FILES - items.length;
       const accepted = files.slice(0, Math.max(remainingSlots, 0));
@@ -240,11 +243,13 @@ export default function Home() {
     setWarning(null);
     setPasswordNotice(null);
     setSparseRemoved(false);
+    setConfirmingReset(false);
     referenceHeadersRef.current = null;
     knownPasswordsRef.current = [];
   }, []);
 
   const handleRemove = useCallback((id: string) => {
+    setConfirmingReset(false);
     setItems((prev) => {
       const next = prev.filter((it) => it.entry.id !== id);
       const stillHasOk = next.some((it) => it.entry.status === "ok");
@@ -322,9 +327,36 @@ export default function Home() {
               <span>
                 ✅ 정상 {okCount}개 · ⚠️ 확인 필요 {problemCount}개
               </span>
-              <button type="button" className={styles.resetButton} onClick={handleReset}>
-                🔄 초기화
-              </button>
+              {!confirmingReset && (
+                <button
+                  type="button"
+                  className={styles.resetButton}
+                  onClick={() => setConfirmingReset(true)}
+                >
+                  🔄 초기화
+                </button>
+              )}
+            </div>
+          )}
+
+          {items.length > 0 && confirmingReset && (
+            <div className={styles.resetConfirm} role="status">
+              <p className={styles.resetConfirmText}>
+                🗑️ 정말 초기화할까요? 올린 파일 {items.length}개와 통합 결과가 모두 사라지고 되돌릴
+                수 없어요.
+              </p>
+              <div className={styles.resetConfirmActions}>
+                <button
+                  type="button"
+                  className={styles.resetCancelButton}
+                  onClick={() => setConfirmingReset(false)}
+                >
+                  아니요, 그대로 둘게요
+                </button>
+                <button type="button" className={styles.resetButton} onClick={handleReset}>
+                  🔄 네, 초기화할게요
+                </button>
+              </div>
             </div>
           )}
 
