@@ -52,7 +52,7 @@ export function FileUploader({ onFilesSelected, disabled }: FileUploaderProps) {
       </svg>
       <p className={styles.title}>📤 엑셀 파일 업로드</p>
       <p className={styles.hint}>
-        동일한 서식의 .xlsx 파일 여러 개를 이곳에 끌어다 놓으세요 👇
+        동일한 서식의 .xlsx · .xls 파일 여러 개를 이곳에 끌어다 놓으세요 👇
       </p>
       <button
         type="button"
@@ -65,7 +65,7 @@ export function FileUploader({ onFilesSelected, disabled }: FileUploaderProps) {
       <input
         ref={inputRef}
         type="file"
-        accept=".xlsx"
+        accept=".xlsx,.xls"
         multiple
         hidden
         onChange={(e) => {

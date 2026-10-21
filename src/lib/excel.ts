@@ -1,5 +1,7 @@
 import ExcelJS from "exceljs";
-import { decryptOfficeFile, isEncryptedOfficeFile } from "./officeCrypto";
+import { isCfbFile, readCfbStreams } from "./cfb";
+import { ENCRYPTION_STREAMS, decryptOfficeStreams } from "./officeCrypto";
+import { readXlsWorkbook, type XlsSheet } from "./xlsReader";
 
 type CellStyle = Partial<ExcelJS.Style>;
 
@@ -97,25 +99,80 @@ function findHeaderRow(sheet: ExcelJS.Worksheet): { rowNumber: number; headers: 
   return null;
 }
 
+// .xls / 암호 걸린 xlsx / 평범한 xlsx를 모두 ExcelJS 워크북 하나로 만들어 준다.
+// 확장자가 아니라 파일 내용으로 판별하므로, 이름만 .xls인 xlsx(또는 그 반대)도 그대로 읽힌다.
+const XLS_WORKBOOK_STREAMS = ["Workbook", "Book"];
+
+async function openWorkbook(buffer: ArrayBuffer, password?: string): Promise<ExcelJS.Workbook> {
+  const workbook = new ExcelJS.Workbook();
+
+  if (isCfbFile(buffer)) {
+    const streams = readCfbStreams(buffer, [...ENCRYPTION_STREAMS, ...XLS_WORKBOOK_STREAMS]);
+
+    if (streams.has("EncryptionInfo")) {
+      if (!password) throw new EncryptedFileError();
+      const decrypted = decryptOfficeStreams(streams, password);
+      await workbook.xlsx.load(
+        decrypted.buffer.slice(
+          decrypted.byteOffset,
+          decrypted.byteOffset + decrypted.byteLength
+        ) as ArrayBuffer
+      );
+      return workbook;
+    }
+
+    const xlsStream = streams.get("Workbook") ?? streams.get("Book");
+    if (xlsStream) {
+      return workbookFromXls(readXlsWorkbook(xlsStream));
+    }
+
+    throw new Error("엑셀 파일로 읽을 수 없는 형식입니다.");
+  }
+
+  await workbook.xlsx.load(buffer);
+  return workbook;
+}
+
+/** 구형 .xls에서 읽은 값을 ExcelJS 워크북에 옮겨 담아, 그 뒤 처리 과정을 xlsx와 똑같이 태운다. */
+function workbookFromXls(sheets: XlsSheet[]): ExcelJS.Workbook {
+  const workbook = new ExcelJS.Workbook();
+  const usedNames = new Set<string>();
+
+  sheets.forEach((sheet, index) => {
+    // ExcelJS는 시트 이름에 제약(길이·특수문자·중복)이 있어 안전한 이름으로 다듬는다.
+    let name = (sheet.name || `Sheet${index + 1}`)
+      .replace(/[*?:\\/[\]]/g, " ")
+      .slice(0, 31)
+      .trim();
+    if (!name) name = `Sheet${index + 1}`;
+    while (usedNames.has(name)) name = `${name.slice(0, 28)}_${index + 1}`;
+    usedNames.add(name);
+
+    const target = workbook.addWorksheet(name);
+    sheet.rows.forEach((row, r) => {
+      if (!row) return;
+      row.forEach((cell, c) => {
+        if (!cell) return;
+        const targetCell = target.getCell(r + 1, c + 1);
+        targetCell.value = cell.value as ExcelJS.CellValue;
+        if (cell.numFmt) targetCell.numFmt = cell.numFmt;
+      });
+    });
+    sheet.columnWidths.forEach((width, c) => {
+      if (width) target.getColumn(c + 1).width = width;
+    });
+  });
+
+  return workbook;
+}
+
 /**
  * 엑셀 파일 하나를 읽어 헤더와 데이터 행을 뽑는다.
  * 열기 암호가 걸린 파일은 password를 받아 복호화한 뒤 읽고, 암호가 없으면 EncryptedFileError를 던진다.
  */
 export async function parseExcelFile(file: File, password?: string): Promise<ParsedFile> {
   const buffer = await file.arrayBuffer();
-  const workbook = new ExcelJS.Workbook();
-  if (isEncryptedOfficeFile(buffer)) {
-    if (!password) throw new EncryptedFileError();
-    const decrypted = decryptOfficeFile(buffer, password);
-    await workbook.xlsx.load(
-      decrypted.buffer.slice(
-        decrypted.byteOffset,
-        decrypted.byteOffset + decrypted.byteLength
-      ) as ArrayBuffer
-    );
-  } else {
-    await workbook.xlsx.load(buffer);
-  }
+  const workbook = await openWorkbook(buffer, password);
 
   if (workbook.worksheets.length === 0) {
     throw new Error("시트를 찾을 수 없습니다.");

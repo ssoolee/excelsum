@@ -114,3 +114,56 @@
   font-size: 0.78rem;
   color: var(--text-muted);
 }
+
+/* 파일마다 암호가 다른 경우를 위한 파일별 암호 입력칸. */
+.unlockRow {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.unlockLabel {
+  flex-basis: 100%;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.unlockInput {
+  flex: 1 1 7rem;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.unlockInput:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.unlockButton {
+  flex-shrink: 0;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-radius: 8px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.unlockButton:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.unlockButton:disabled,
+.unlockInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

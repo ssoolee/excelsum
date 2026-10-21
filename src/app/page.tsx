@@ -192,9 +192,35 @@ export default function Home() {
       }
       setPasswordNotice(
         failedCount > 0
-          ? `🔑 ${failedCount}개 파일은 이 암호로 열리지 않았습니다. 그 파일들의 암호를 입력해 보세요.`
+          ? `🔑 ${failedCount}개 파일은 이 암호로 열리지 않았습니다. 파일마다 암호가 다르면 아래 목록에서 그 파일의 암호를 넣어 주세요.`
           : null
       );
+    },
+    [items, processFile, updateEntry]
+  );
+
+  /** 파일 하나에만 암호를 적용한다(파일마다 암호가 다른 경우). */
+  const handleUnlockOne = useCallback(
+    async (id: string, password: string) => {
+      const target = items.find((it) => it.entry.id === id);
+      if (!target) return;
+
+      setIsUnlocking(true);
+      setUnlockingCount(items.filter((it) => it.entry.status === "locked").length);
+      try {
+        updateEntry(id, {
+          ...target,
+          entry: { ...target.entry, status: "processing", message: undefined },
+        });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        const status = await processFile(target.file, id, password);
+        if (status !== "locked" && !knownPasswordsRef.current.includes(password)) {
+          knownPasswordsRef.current.push(password);
+        }
+      } finally {
+        setIsUnlocking(false);
+        setUnlockingCount(0);
+      }
     },
     [items, processFile, updateEntry]
   );
@@ -264,7 +290,10 @@ export default function Home() {
   }, []);
 
   const okCount = items.filter((it) => it.entry.status === "ok").length;
-  const lockedCount = items.filter((it) => it.entry.status === "locked").length;
+  const lockedFileNames = items
+    .filter((it) => it.entry.status === "locked")
+    .map((it) => it.entry.fileName);
+  const lockedCount = lockedFileNames.length;
   const passwordPromptCount = isUnlocking ? unlockingCount : lockedCount;
   const problemCount = items.length - okCount;
 
@@ -315,6 +344,7 @@ export default function Home() {
           {passwordPromptCount > 0 && (
             <PasswordPanel
               lockedCount={passwordPromptCount}
+              lockedFileNames={lockedFileNames}
               isUnlocking={isUnlocking}
               notice={passwordNotice}
               onSubmit={handleApplyPassword}
@@ -360,7 +390,12 @@ export default function Home() {
             </div>
           )}
 
-          <FileStatusList entries={items.map((it) => it.entry)} onRemove={handleRemove} />
+          <FileStatusList
+            entries={items.map((it) => it.entry)}
+            onRemove={handleRemove}
+            onUnlock={handleUnlockOne}
+            isUnlocking={isUnlocking}
+          />
         </section>
 
         <section className={styles.rightColumn}>
