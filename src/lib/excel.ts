@@ -1,6 +1,15 @@
 import ExcelJS from "exceljs";
+import { decryptOfficeFile, isEncryptedOfficeFile } from "./officeCrypto";
 
 type CellStyle = Partial<ExcelJS.Style>;
+
+/** 열기 암호가 걸려 있어 암호 없이는 읽을 수 없는 파일. */
+export class EncryptedFileError extends Error {
+  constructor(message = "암호가 걸린 파일입니다.") {
+    super(message);
+    this.name = "EncryptedFileError";
+  }
+}
 
 export interface ParsedFile {
   fileName: string;
@@ -88,10 +97,25 @@ function findHeaderRow(sheet: ExcelJS.Worksheet): { rowNumber: number; headers: 
   return null;
 }
 
-export async function parseExcelFile(file: File): Promise<ParsedFile> {
+/**
+ * 엑셀 파일 하나를 읽어 헤더와 데이터 행을 뽑는다.
+ * 열기 암호가 걸린 파일은 password를 받아 복호화한 뒤 읽고, 암호가 없으면 EncryptedFileError를 던진다.
+ */
+export async function parseExcelFile(file: File, password?: string): Promise<ParsedFile> {
   const buffer = await file.arrayBuffer();
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(buffer);
+  if (isEncryptedOfficeFile(buffer)) {
+    if (!password) throw new EncryptedFileError();
+    const decrypted = decryptOfficeFile(buffer, password);
+    await workbook.xlsx.load(
+      decrypted.buffer.slice(
+        decrypted.byteOffset,
+        decrypted.byteOffset + decrypted.byteLength
+      ) as ArrayBuffer
+    );
+  } else {
+    await workbook.xlsx.load(buffer);
+  }
 
   if (workbook.worksheets.length === 0) {
     throw new Error("시트를 찾을 수 없습니다.");

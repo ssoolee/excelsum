@@ -91,6 +91,7 @@
   color: var(--text-muted);
 }
 
+.badge.locked,
 .badge.mismatch,
 .badge.empty {
   background: var(--warn-surface);

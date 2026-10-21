@@ -42,6 +42,7 @@ npm run build:offline   # dist-offline/excelsum-offline.exe 생성
 ## 아키텍처
 
 - **핵심 로직은 `src/lib/excel.ts`에 순수 함수로 분리되어 있다.** 엑셀 파싱(`parseExcelFile`), 헤더 비교(`diffHeaders`/`headersMatch`/`describeHeaderDiff`), 병합(`mergeParsedFiles`), 결과 파일 생성(`buildWorkbookBlob`)이 UI와 독립적으로 테스트 가능하다. 파싱/생성 라이브러리는 `exceljs`를 쓴다 — npm의 `xlsx` 패키지는 패치되지 않은 고위험 취약점(프로토타입 오염, ReDoS)이 있어 의도적으로 배제했다.
+- **암호가 걸린 파일 복호화는 `src/lib/officeCrypto.ts`가 담당한다.** 열기 암호가 걸린 xlsx는 zip이 아니라 CFB(OLE2) 컨테이너여서 ExcelJS가 바로 읽지 못한다. 이 모듈이 최소 CFB 리더 + MS-OFFCRYPTO 복호화(Agile/Standard)를 직접 구현하고, `parseExcelFile(file, password)`이 그 결과를 ExcelJS에 넘긴다. 해시/AES만 `@noble/hashes`·`@noble/ciphers`(무의존·감사됨)를 쓰며 Node 전용 API를 쓰지 않아 정적 빌드·오프라인 exe·Node 검증 스크립트에서 같은 코드가 돈다. 암호는 `page.tsx`의 ref에만 머물고 저장·전송하지 않는다. 암호 파일 검증: `node scripts/verify-decrypt.ts <픽스처_폴더> [<standard파일>::<암호>]` (픽스처는 `npx officecrypto-tool`의 `encrypt`로 만들면 된다 — 개발용이라 의존성에 넣지 않았다).
 - **전체 흐름은 `src/app/page.tsx`에서 조율된다.** 업로드된 파일들을 순차적으로(await 반복) 파싱하는데, 이는 "가장 먼저 정상 파싱된 파일의 헤더를 기준 서식으로 삼는다"는 규칙을 레이스 컨디션 없이 구현하기 위함이다. 이후 파일들은 이 기준과 헤더가 다르면 `mismatch` 상태로 분리되고 병합 대상에서 제외된다.
 - **서버가 없다.** `next.config.ts`에 `output: "export"`가 설정되어 있어 완전한 정적 사이트로 빌드된다. API 라우트, 서버 컴포넌트의 동적 데이터 페칭, `params`/`searchParams` 등 Next.js의 서버 전용 기능은 이 프로젝트에 적용되지 않는다(적용 시 정적 빌드가 깨진다).
 - **반응형은 미디어 쿼리보다 컨테이너 쿼리/`clamp()`/grid `auto-fit`을 우선한다.** 예: `src/components/FileStatusList.module.css`의 카드 레이아웃은 뷰포트가 아니라 카드가 놓인 컨테이너 폭 기준으로 줄바꿈한다. PC↔모바일처럼 레이아웃 자체가 바뀌는 큰 분기(`src/app/page.module.css`의 760px)에만 `@media`를 쓴다.

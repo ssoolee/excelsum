@@ -10,6 +10,8 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
+    // scripts/verify-decrypt.ts가 Node에서 바로 실행되도록 .ts 확장자 import를 허용한다(noEmit이라 안전).
+    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,

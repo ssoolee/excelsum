@@ -5,8 +5,10 @@ import Link from "next/link";
 import { FileUploader } from "@/components/FileUploader";
 import { FileStatusList } from "@/components/FileStatusList";
 import { Mascot } from "@/components/Mascot";
+import { PasswordPanel } from "@/components/PasswordPanel";
 import { PreviewTable } from "@/components/PreviewTable";
 import {
+  EncryptedFileError,
   MAX_FILES,
   MAX_FILE_SIZE_BYTES,
   buildDownloadFileName,
@@ -20,12 +22,15 @@ import {
   removeFirstColumnOnlyRows,
   type ParsedFile,
 } from "@/lib/excel";
-import type { FileEntry } from "@/lib/types";
+import { UnsupportedEncryptionError, WrongPasswordError } from "@/lib/officeCrypto";
+import type { FileEntry, FileStatus } from "@/lib/types";
 import { IS_OFFLINE_BUILD, OFFLINE_EXE_URL } from "@/lib/links";
 import styles from "./page.module.css";
 
 interface Item {
   entry: FileEntry;
+  /** 암호를 입력받은 뒤 다시 읽어야 하므로 원본 File 참조를 들고 있는다. */
+  file: File;
   parsed?: ParsedFile;
 }
 
@@ -33,12 +38,86 @@ export default function Home() {
   const [items, setItems] = useState<Item[]>([]);
   const [warning, setWarning] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  // 암호를 적용하는 동안 파일 상태가 잠시 "처리 중"으로 바뀌어도 패널이 사라지지 않게 개수를 따로 기억한다.
+  const [unlockingCount, setUnlockingCount] = useState(0);
+  const [passwordNotice, setPasswordNotice] = useState<string | null>(null);
   const [sparseRemoved, setSparseRemoved] = useState(false);
   const referenceHeadersRef = useRef<string[] | null>(null);
+  // 한 번 통한 암호들은 이후 추가 업로드되는 파일에도 자동으로 써 본다(암호를 다시 묻지 않기 위함).
+  const knownPasswordsRef = useRef<string[]>([]);
 
   const updateEntry = useCallback((id: string, next: Item) => {
     setItems((prev) => prev.map((it) => (it.entry.id === id ? next : it)));
   }, []);
+
+  /** 파일 하나를 읽어 상태를 갱신하고, 결정된 상태를 돌려준다(업로드 직후·암호 적용 때 모두 같은 경로). */
+  const processFile = useCallback(
+    async (file: File, id: string, password?: string): Promise<FileStatus> => {
+      const setStatus = (status: FileStatus, extra: Partial<FileEntry> = {}, parsed?: ParsedFile) => {
+        updateEntry(id, {
+          file,
+          parsed,
+          entry: { id, fileName: file.name, status, ...extra },
+        });
+        return status;
+      };
+
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        return setStatus("error", { message: "파일 용량이 10MB를 초과합니다." });
+      }
+
+      try {
+        const parsed = await parseExcelFile(file, password);
+
+        if (parsed.rows.length === 0) {
+          return setStatus("empty", { message: "헤더만 있고 데이터 행이 없습니다." });
+        }
+
+        const skippedSheetsMessage =
+          parsed.skippedSheets.length > 0
+            ? `제외된 시트: ${parsed.skippedSheets.join(", ")} (헤더가 다르거나 표 형태가 아님)`
+            : undefined;
+
+        if (!referenceHeadersRef.current) {
+          referenceHeadersRef.current = parsed.headers;
+          return setStatus(
+            "ok",
+            { rowCount: parsed.rows.length, message: skippedSheetsMessage },
+            parsed
+          );
+        }
+
+        const diff = diffHeaders(referenceHeadersRef.current, parsed.headers);
+        if (headersMatch(diff)) {
+          return setStatus(
+            "ok",
+            { rowCount: parsed.rows.length, message: skippedSheetsMessage },
+            parsed
+          );
+        }
+        return setStatus("mismatch", { message: describeHeaderDiff(diff) });
+      } catch (err) {
+        if (err instanceof EncryptedFileError) {
+          return setStatus("locked", {
+            message: "🔒 암호가 걸린 파일입니다. 아래에 암호를 입력해 주세요.",
+          });
+        }
+        if (err instanceof WrongPasswordError) {
+          return setStatus("locked", {
+            message: "🔑 입력한 암호와 맞지 않습니다. 이 파일의 암호를 입력해 주세요.",
+          });
+        }
+        if (err instanceof UnsupportedEncryptionError) {
+          return setStatus("error", { message: err.message });
+        }
+        return setStatus("error", {
+          message: err instanceof Error ? err.message : "파일을 읽을 수 없습니다.",
+        });
+      }
+    },
+    [updateEntry]
+  );
 
   const handleFilesSelected = useCallback(
     async (files: File[]) => {
@@ -54,6 +133,7 @@ export default function Home() {
       if (accepted.length === 0) return;
 
       const pending: Item[] = accepted.map((file) => ({
+        file,
         entry: {
           id: crypto.randomUUID(),
           fileName: file.name,
@@ -62,92 +142,58 @@ export default function Home() {
       }));
       setItems((prev) => [...prev, ...pending]);
 
+      // 순차 처리는 "가장 먼저 정상 파싱된 파일의 헤더를 기준으로 삼는" 규칙을 지키기 위함이다.
       for (let i = 0; i < accepted.length; i++) {
-        const file = accepted[i];
         const id = pending[i].entry.id;
-
-        if (file.size > MAX_FILE_SIZE_BYTES) {
-          updateEntry(id, {
-            entry: {
-              id,
-              fileName: file.name,
-              status: "error",
-              message: "파일 용량이 10MB를 초과합니다.",
-            },
-          });
-          continue;
-        }
-
-        try {
-          const parsed = await parseExcelFile(file);
-
-          if (parsed.rows.length === 0) {
-            updateEntry(id, {
-              entry: {
-                id,
-                fileName: file.name,
-                status: "empty",
-                message: "헤더만 있고 데이터 행이 없습니다.",
-              },
-            });
-            continue;
-          }
-
-          const skippedSheetsMessage =
-            parsed.skippedSheets.length > 0
-              ? `제외된 시트: ${parsed.skippedSheets.join(", ")} (헤더가 다르거나 표 형태가 아님)`
-              : undefined;
-
-          if (!referenceHeadersRef.current) {
-            referenceHeadersRef.current = parsed.headers;
-            updateEntry(id, {
-              entry: {
-                id,
-                fileName: file.name,
-                status: "ok",
-                rowCount: parsed.rows.length,
-                message: skippedSheetsMessage,
-              },
-              parsed,
-            });
-            continue;
-          }
-
-          const diff = diffHeaders(referenceHeadersRef.current, parsed.headers);
-          if (headersMatch(diff)) {
-            updateEntry(id, {
-              entry: {
-                id,
-                fileName: file.name,
-                status: "ok",
-                rowCount: parsed.rows.length,
-                message: skippedSheetsMessage,
-              },
-              parsed,
-            });
-          } else {
-            updateEntry(id, {
-              entry: {
-                id,
-                fileName: file.name,
-                status: "mismatch",
-                message: describeHeaderDiff(diff),
-              },
-            });
-          }
-        } catch (err) {
-          updateEntry(id, {
-            entry: {
-              id,
-              fileName: file.name,
-              status: "error",
-              message: err instanceof Error ? err.message : "파일을 읽을 수 없습니다.",
-            },
-          });
+        let status = await processFile(accepted[i], id);
+        // 암호가 걸려 있으면 이미 통했던 암호들을 차례로 써 본다.
+        for (const known of knownPasswordsRef.current) {
+          if (status !== "locked") break;
+          status = await processFile(accepted[i], id, known);
         }
       }
     },
-    [items.length, updateEntry]
+    [items.length, processFile]
+  );
+
+  /** 입력받은 공통 암호로 잠긴 파일들을 한꺼번에 다시 읽는다. */
+  const handleApplyPassword = useCallback(
+    async (password: string) => {
+      const targets = items.filter((it) => it.entry.status === "locked");
+      if (targets.length === 0) return;
+
+      setIsUnlocking(true);
+      setUnlockingCount(targets.length);
+      setPasswordNotice(null);
+      let unlockedCount = 0;
+      let failedCount = 0;
+      try {
+        for (const target of targets) {
+          updateEntry(target.entry.id, {
+            ...target,
+            entry: { ...target.entry, status: "processing", message: undefined },
+          });
+          // 암호 키 계산이 CPU를 쓰므로, 화면이 "처리 중"을 그릴 틈을 준다.
+          await new Promise((resolve) => setTimeout(resolve, 0));
+          const status = await processFile(target.file, target.entry.id, password);
+          if (status === "locked") failedCount++;
+          else unlockedCount++;
+        }
+      } finally {
+        setIsUnlocking(false);
+        setUnlockingCount(0);
+      }
+
+      if (unlockedCount > 0 && !knownPasswordsRef.current.includes(password)) {
+        knownPasswordsRef.current.push(password);
+      }
+      setPasswordNotice(
+        failedCount > 0
+          ? `🔑 ${failedCount}개 파일은 이 암호로 열리지 않았습니다. 그 파일들의 암호를 입력해 보세요.`
+          : null
+      );
+    },
+    [items, processFile, updateEntry]
   );
 
   const merged = useMemo(() => {
@@ -192,8 +238,10 @@ export default function Home() {
   const handleReset = useCallback(() => {
     setItems([]);
     setWarning(null);
+    setPasswordNotice(null);
     setSparseRemoved(false);
     referenceHeadersRef.current = null;
+    knownPasswordsRef.current = [];
   }, []);
 
   const handleRemove = useCallback((id: string) => {
@@ -203,11 +251,16 @@ export default function Home() {
       if (!stillHasOk) {
         referenceHeadersRef.current = null;
       }
+      if (!next.some((it) => it.entry.status === "locked")) {
+        setPasswordNotice(null);
+      }
       return next;
     });
   }, []);
 
   const okCount = items.filter((it) => it.entry.status === "ok").length;
+  const lockedCount = items.filter((it) => it.entry.status === "locked").length;
+  const passwordPromptCount = isUnlocking ? unlockingCount : lockedCount;
   const problemCount = items.length - okCount;
 
   return (
@@ -242,6 +295,7 @@ export default function Home() {
             <li>🚫 서버로 전송하지 않아요 · 지금 쓰는 브라우저 안에서만 처리</li>
             <li>🗂️ 어디에도 저장하지 않아요</li>
             <li>🧹 창을 닫으면 내용이 모두 사라져요</li>
+            <li>🔑 암호가 걸린 파일도 암호를 서버로 보내지 않고 브라우저에서 바로 열어요</li>
             {!IS_OFFLINE_BUILD && <li>💻 인터넷이 차단된 PC는 오프라인용 실행파일로 OK</li>}
           </ul>
         </div>
@@ -252,6 +306,16 @@ export default function Home() {
           <FileUploader onFilesSelected={handleFilesSelected} />
 
           {warning && <p className={styles.warning}>{warning}</p>}
+
+          {passwordPromptCount > 0 && (
+            <PasswordPanel
+              lockedCount={passwordPromptCount}
+              isUnlocking={isUnlocking}
+              notice={passwordNotice}
+              onSubmit={handleApplyPassword}
+            />
+          )}
+
 
           {items.length > 0 && (
             <div className={styles.summaryRow}>

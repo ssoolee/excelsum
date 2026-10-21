@@ -1,4 +1,4 @@
-export type FileStatus = "processing" | "ok" | "mismatch" | "empty" | "error";
+export type FileStatus = "processing" | "ok" | "locked" | "mismatch" | "empty" | "error";
 
 export interface FileEntry {
   id: string;

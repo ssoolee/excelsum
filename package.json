@@ -10,6 +10,8 @@
     "build:offline": "node scripts/build-offline.js"
   },
   "dependencies": {
+    "@noble/ciphers": "^2.4.0",
+    "@noble/hashes": "^2.4.0",
     "exceljs": "^4.4.0",
     "next": "16.3.4",
     "react": "19.2.8",
