@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { isCfbFile, readCfbStreams } from "./cfb";
 import { ENCRYPTION_STREAMS, decryptOfficeStreams } from "./officeCrypto";
 import { readXlsWorkbook, type XlsSheet } from "./xlsReader";
+import { assertSupportedXlsEncryption, isEncryptedXlsStream } from "./xlsCrypto";
 
 type CellStyle = Partial<ExcelJS.Style>;
 
@@ -123,7 +124,12 @@ async function openWorkbook(buffer: ArrayBuffer, password?: string): Promise<Exc
 
     const xlsStream = streams.get("Workbook") ?? streams.get("Book");
     if (xlsStream) {
-      return workbookFromXls(readXlsWorkbook(xlsStream));
+      if (!password && isEncryptedXlsStream(xlsStream)) {
+        // 풀 수 없는 보호 방식이면 암호를 묻지 않고 바로 이유를 알린다.
+        assertSupportedXlsEncryption(xlsStream);
+        throw new EncryptedFileError();
+      }
+      return workbookFromXls(readXlsWorkbook(xlsStream, password));
     }
 
     throw new Error("엑셀 파일로 읽을 수 없는 형식입니다.");

@@ -6,15 +6,14 @@
  * 헤더/데이터 행을 뽑을 수 있다. 수식은 저장된 계산 결과를 쓰고, 서식은 날짜 판별과
  * 표시 형식 승계에 필요한 만큼(FORMAT/XF)만 읽는다. 쓰기는 지원하지 않는다.
  *
- * 지원 범위: BIFF8(Excel 97-2003). 그 이전 형식(Excel 95 이하)과 암호가 걸린 .xls는
- * 각각 UnsupportedXlsError / EncryptedXlsError로 분명히 알린다.
+ * 지원 범위: BIFF8(Excel 97-2003). 열기 암호가 걸린 파일은 xlsCrypto.ts가 먼저 풀어 주고,
+ * 그보다 오래된 형식(Excel 95 이하)은 UnsupportedXlsError로 분명히 알린다.
  */
+import { decryptXlsStream, isEncryptedXlsStream } from "./xlsCrypto";
 
-/** 암호(열기 암호)가 걸린 .xls — 복호화는 지원하지 않는다. */
+/** 암호가 필요한데 받지 못했을 때(실제 분기는 excel.ts가 먼저 한다). */
 export class EncryptedXlsError extends Error {
-  constructor(
-    message = "암호가 걸린 구형 엑셀(.xls)은 열 수 없습니다. 엑셀에서 암호를 푼 뒤 올리거나 .xlsx로 저장해 주세요."
-  ) {
+  constructor(message = "암호가 걸린 파일입니다.") {
     super(message);
     this.name = "EncryptedXlsError";
   }
@@ -196,9 +195,10 @@ function rkToNumber(rk: number): number {
   if (isInt) {
     value = (rk | 0) >> 2;
   } else {
+    // RK는 실수의 상위 32비트만 담고 있다. 나머지 32비트는 0으로 두고 읽는다.
     const buf = new ArrayBuffer(8);
     const view = new DataView(buf);
-    view.setUint32(4, rk & 0xfffffffc);
+    view.setUint32(0, rk & 0xfffffffc, false);
     value = view.getFloat64(0, false);
   }
   return isX100 ? value / 100 : value;
@@ -316,8 +316,6 @@ function readGlobals(stream: Uint8Array): { sheets: SheetInfo[]; ctx: WorkbookCo
 
     const reader = new RecordReader(rec);
     switch (rec.sid) {
-      case SID.FILEPASS:
-        throw new EncryptedXlsError();
       case SID.BOUNDSHEET: {
         const offset = reader.u32();
         reader.u8(); // 표시 상태(숨김 여부) — 숨은 시트도 그대로 읽는다.
@@ -382,8 +380,6 @@ function readSheet(stream: Uint8Array, info: SheetInfo, ctx: WorkbookContext): X
     switch (rec.sid) {
       case SID.BOF:
         break;
-      case SID.FILEPASS:
-        throw new EncryptedXlsError();
       case SID.COLINFO: {
         const first = reader.u16();
         const last = reader.u16();
@@ -483,12 +479,18 @@ function readSheet(stream: Uint8Array, info: SheetInfo, ctx: WorkbookContext): X
   return { name: info.name, rows, columnWidths };
 }
 
-/** Workbook 스트림 전체를 읽어 시트별 값으로 돌려준다. */
-export function readXlsWorkbook(workbookStream: Uint8Array): XlsSheet[] {
-  const { sheets, ctx } = readGlobals(workbookStream);
+/** Workbook 스트림 전체를 읽어 시트별 값으로 돌려준다. 암호가 걸려 있으면 먼저 복호화한다. */
+export function readXlsWorkbook(workbookStream: Uint8Array, password?: string): XlsSheet[] {
+  let stream = workbookStream;
+  if (isEncryptedXlsStream(stream)) {
+    if (!password) throw new EncryptedXlsError();
+    stream = decryptXlsStream(stream, password);
+  }
+
+  const { sheets, ctx } = readGlobals(stream);
   const worksheets = sheets.filter((s) => s.isWorksheet);
   if (worksheets.length === 0) {
     throw new UnsupportedXlsError("시트를 찾을 수 없습니다.");
   }
-  return worksheets.map((info) => readSheet(workbookStream, info, ctx));
+  return worksheets.map((info) => readSheet(stream, info, ctx));
 }

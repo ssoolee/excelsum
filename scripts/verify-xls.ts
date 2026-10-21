@@ -4,9 +4,11 @@
  *   node scripts/verify-xls.ts <픽스처_폴더>
  *
  * 폴더 안에 xls-same.xls / xls-mismatch.xls / xls-types.xls / xls-multi.xls /
- * xls-cached-formula.xls 가 있다고 보고 검사한다. 앞의 넷은 파이썬 xlwt(`pip install xlwt`)로,
- * 수식 결과가 저장된 마지막 하나는 SheetJS(`XLSX.writeFile(..., { bookType: "biff8" })`)로
- * 만들면 된다 — 둘 다 개발용이라 프로젝트 의존성에는 넣지 않았다.
+ * xls-cached-formula.xls / xls-rc4-1234.xls(암호 1234) / xls-rc4-ko.xls(암호 한글암호!@#)가
+ * 있다고 보고 검사한다. 앞의 넷은 파이썬 xlwt(`pip install xlwt`)로, 수식 결과가 저장된 파일은
+ * SheetJS(`XLSX.writeFile(..., { bookType: "biff8" })`)로, 암호 걸린 두 개는 엑셀에서
+ * "다른 이름으로 저장 → 도구 → 일반 옵션 → 열기 암호"로 .xls(Excel 97-2003)로 저장해 만든다
+ * — 생성 도구는 개발용이라 프로젝트 의존성에는 넣지 않았다.
  * Node 24는 .ts를 그대로 실행한다.
  */
 import { readFile } from "node:fs/promises";
@@ -18,6 +20,8 @@ import {
   parseExcelFile,
   type ParsedFile,
 } from "../src/lib/excel.ts";
+import { WrongPasswordError } from "../src/lib/officeCrypto.ts";
+import { verifyXlsPassword } from "../src/lib/xlsCrypto.ts";
 
 const dir = process.argv[2];
 if (!dir) {
@@ -32,9 +36,9 @@ function check(name: string, condition: boolean, detail = "") {
   if (!condition) failures++;
 }
 
-async function parse(fileName: string): Promise<ParsedFile> {
+async function parse(fileName: string, password?: string): Promise<ParsedFile> {
   const bytes = await readFile(path.join(dir, fileName));
-  return parseExcelFile(new File([bytes], fileName));
+  return parseExcelFile(new File([bytes], fileName), password);
 }
 
 const same = await parse("xls-same.xls");
@@ -102,6 +106,54 @@ check(
   multi.skippedSheets.join(",") === "안내",
   multi.skippedSheets.join(",")
 );
+
+// 암호가 걸린 .xls (RC4 CryptoAPI — Office XP 이후가 .xls에 쓰는 방식)
+{
+  const locked = await parse("xls-rc4-1234.xls", "1234");
+  check(
+    "암호 걸린 .xls가 열리고 값이 그대로 읽힌다",
+    locked.headers.join(",") === "부서,담당자,금액" &&
+      locked.rows[0][0] === "감사담당관" &&
+      locked.rows[0][2] === 120000,
+    JSON.stringify(locked.rows[0])
+  );
+
+  const ko = await parse("xls-rc4-ko.xls", "한글암호!@#");
+  check("한글 암호가 걸린 .xls도 열린다", ko.rows.length === 2, `${ko.rows.length}행`);
+
+  try {
+    await parse("xls-rc4-1234.xls", "0000");
+    check("틀린 암호는 WrongPasswordError", false, "예외가 나지 않았다");
+  } catch (err) {
+    check("틀린 암호는 WrongPasswordError", err instanceof WrongPasswordError, String(err));
+  }
+
+  try {
+    await parse("xls-rc4-1234.xls");
+    check("암호 없이 열면 암호가 필요하다고 알린다", false, "예외가 나지 않았다");
+  } catch (err) {
+    check(
+      "암호 없이 열면 암호가 필요하다고 알린다",
+      err instanceof Error && err.name === "EncryptedFileError",
+      String(err)
+    );
+  }
+}
+
+// Office 97/2000의 기본 RC4(버전 1.1) 키 유도 — 공개된 참조 구현의 시험값으로 확인한다.
+{
+  const vector = (hex: string) => Uint8Array.from(Buffer.from(hex, "hex"));
+  const filePass = new Uint8Array([
+    0x01, 0x00, // 종류: RC4
+    0x01, 0x00, // 버전 1
+    0x01, 0x00, // .1
+    ...vector("e8772c1d91c56a37964761b280183217"), // salt
+    ...vector("c9e997d454973d310bb1ba701426837e"), // encryptedVerifier
+    ...vector("b1de178f07e989c44dae5e4cf96ac407"), // encryptedVerifierHash
+  ]);
+  check("구형 RC4(1.1) 암호 검증이 참조 구현과 일치한다", verifyXlsPassword(filePass, "password1"));
+  check("구형 RC4(1.1)에서 틀린 암호를 걸러낸다", !verifyXlsPassword(filePass, "password2"));
+}
 
 // .xlsx와 .xls를 섞어 병합(헤더가 같으면 한 표로 합쳐져야 한다).
 const plainXlsx = await parse("../fixtures/plain.xlsx").catch(() => null);
