@@ -21,7 +21,7 @@ npx tsc --noEmit # 타입 체크 (별도 test 스크립트 없음)
 
 ```bash
 npm run build
-npx -y firebase-tools@latest deploy --only hosting   # https://excelsum-app.web.app
+npx -y firebase-tools@latest deploy --only hosting   # https://excelsum.web.app (+ 기존 https://excelsum-app.web.app 동시 배포)
 npx -y vercel deploy --prod --yes                     # https://excelsum-two.vercel.app (Vercel 프로젝트명: excelsum)
 ```
 
@@ -60,7 +60,7 @@ npm run build:offline   # dist-offline/excelsum-offline.exe 생성
 
 ## 배포 정보
 
-- Firebase 프로젝트 ID: `excelsum-app` (`.firebaserc`) — Hosting URL: https://excelsum-app.web.app
+- Firebase 프로젝트 ID: `excelsum-app` (`.firebaserc`) — Hosting 사이트 2개(`firebase.json`): 대표 주소 https://excelsum.web.app, 기존 주소 https://excelsum-app.web.app (둘 다 같은 `out/`을 배포)
 - Vercel 프로젝트명: `excelsum` (`goznuki` 계정, `.vercel/project.json`) — Production URL: https://excelsum-two.vercel.app
 - GitHub: https://github.com/ssoolee/excelsum
 
