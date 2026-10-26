@@ -10,7 +10,18 @@
       "site": "excelsum-app",
       "public": "out",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "cleanUrls": true
+      "redirects": [
+        {
+          "source": "/",
+          "destination": "https://excelsum.web.app/",
+          "type": 301
+        },
+        {
+          "source": "/:path*",
+          "destination": "https://excelsum.web.app/:path",
+          "type": 301
+        }
+      ]
     }
   ]
 }
