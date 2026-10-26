@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { IS_OFFLINE_BUILD, OFFLINE_EXE_URL } from "@/lib/links";
+import { OFFLINE_EXE_URL, SHOW_OFFLINE_EXE_LINK } from "@/lib/links";
 import styles from "./guide.module.css";
 
 export const metadata: Metadata = {
@@ -135,7 +135,7 @@ export default function GuidePage() {
           </ul>
         </div>
 
-        {!IS_OFFLINE_BUILD && (
+        {SHOW_OFFLINE_EXE_LINK && (
           <div className={styles.infoCard}>
             <h2 className={styles.infoTitle}>💻 인터넷이 막힌 PC에서 쓰려면</h2>
             <p className={styles.infoText}>

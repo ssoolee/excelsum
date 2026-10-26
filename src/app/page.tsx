@@ -24,7 +24,7 @@ import {
 } from "@/lib/excel";
 import { UnsupportedEncryptionError, WrongPasswordError } from "@/lib/officeCrypto";
 import type { FileEntry, FileStatus } from "@/lib/types";
-import { IS_OFFLINE_BUILD, OFFLINE_EXE_URL } from "@/lib/links";
+import { OFFLINE_EXE_URL, SHOW_OFFLINE_EXE_LINK } from "@/lib/links";
 import styles from "./page.module.css";
 
 interface Item {
@@ -310,7 +310,7 @@ export default function Home() {
             <Link href="/guide" className={styles.headerLink}>
               📖 사용법 보기
             </Link>
-            {!IS_OFFLINE_BUILD && (
+            {SHOW_OFFLINE_EXE_LINK && (
               <a href={OFFLINE_EXE_URL} className={styles.headerLink}>
                 💾 오프라인용 실행파일(exe) 받기
               </a>
@@ -330,7 +330,7 @@ export default function Home() {
             <li>🗂️ 어디에도 저장하지 않아요</li>
             <li>🧹 창을 닫으면 내용이 모두 사라져요</li>
             <li>🔑 암호가 걸린 파일도 암호를 서버로 보내지 않고 브라우저에서 바로 열어요</li>
-            {!IS_OFFLINE_BUILD && <li>💻 인터넷이 차단된 PC는 오프라인용 실행파일로 OK</li>}
+            {SHOW_OFFLINE_EXE_LINK && <li>💻 인터넷이 차단된 PC는 오프라인용 실행파일로 OK</li>}
           </ul>
         </div>
       </section>
