@@ -55,3 +55,6 @@ next-env.d.ts
 
 # local docs
 /docs/
+
+# practice sample files
+/practice-xlsx/
